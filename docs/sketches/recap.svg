@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" font-family="Arial, sans-serif">
+  <rect width="1080" height="1350" fill="#2B2438"/>
+  <circle cx="900" cy="170" r="260" fill="#FF7A59" opacity="0.18"/>
+  <circle cx="120" cy="1180" r="300" fill="#2BB3A3" opacity="0.16"/>
+  <text x="80" y="120" font-size="28" fill="#FFD166" letter-spacing="6">YOUR AGENT RECAP · 2026</text>
+  <text x="80" y="230" font-size="84" font-weight="bold" fill="#FFF1DC" font-family="Georgia, serif">The Methodical</text>
+  <text x="80" y="320" font-size="84" font-weight="bold" fill="#FFF1DC" font-family="Georgia, serif">Tinkerer</text>
+  <text x="80" y="375" font-size="26" fill="#FFF1DC" opacity="0.7">agent personality (just for fun)</text>
+
+  <!-- top modes -->
+  <text x="80" y="480" font-size="26" fill="#FFD166" letter-spacing="4">TOP MODES</text>
+  <g font-size="34" fill="#FFF1DC">
+    <text x="80" y="545">🔍 Debug Mode</text>
+    <rect x="420" y="515" width="520" height="22" rx="11" fill="#FF7A59"/>
+    <text x="80" y="615">🎯 Deep Focus</text>
+    <rect x="420" y="585" width="360" height="22" rx="11" fill="#FF7A59" opacity="0.85"/>
+    <text x="80" y="685">🧹 Chill Refactor</text>
+    <rect x="420" y="655" width="210" height="22" rx="11" fill="#FF7A59" opacity="0.7"/>
+  </g>
+
+  <!-- stat tiles -->
+  <g>
+    <rect x="80" y="780" width="270" height="230" rx="28" fill="#FFF1DC"/>
+    <text x="215" y="900" font-size="88" font-weight="bold" fill="#2B2438" text-anchor="middle" font-family="Georgia, serif">42</text>
+    <text x="215" y="950" font-size="24" fill="#2B2438" text-anchor="middle">mode switches</text>
+    <rect x="405" y="780" width="270" height="230" rx="28" fill="#FFF1DC"/>
+    <text x="540" y="900" font-size="88" font-weight="bold" fill="#2B2438" text-anchor="middle" font-family="Georgia, serif">9</text>
+    <text x="540" y="950" font-size="24" fill="#2B2438" text-anchor="middle">longest streak (sessions)</text>
+    <rect x="730" y="780" width="270" height="230" rx="28" fill="#FFF1DC"/>
+    <text x="865" y="880" font-size="62" fill="#2B2438" text-anchor="middle">🌙</text>
+    <text x="865" y="935" font-size="26" font-weight="bold" fill="#2B2438" text-anchor="middle">Night owl</text>
+    <text x="865" y="970" font-size="22" fill="#2B2438" text-anchor="middle">most Debug after 9pm</text>
+  </g>
+
+  <text x="80" y="1250" font-size="26" fill="#FFF1DC" opacity="0.75">modedial · built from my local log, nothing uploaded</text>
+  <text x="1000" y="1250" font-size="22" fill="#FFF1DC" opacity="0.5" text-anchor="end">sketch · numbers are fake</text>
+</svg>

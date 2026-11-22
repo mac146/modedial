@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" font-family="Georgia, 'Times New Roman', serif">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFF1DC"/>
+      <stop offset="1" stop-color="#FFD9C7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- dial motif -->
+  <circle cx="930" cy="315" r="230" fill="#FF7A59" opacity="0.14"/>
+  <circle cx="930" cy="315" r="170" fill="none" stroke="#2B2438" stroke-width="6" stroke-dasharray="3 22" stroke-linecap="round"/>
+  <circle cx="930" cy="315" r="110" fill="#FFFFFF" stroke="#2B2438" stroke-width="6"/>
+  <text x="930" y="350" font-size="110" text-anchor="middle">🎯</text>
+  <line x1="930" y1="145" x2="930" y2="175" stroke="#FF7A59" stroke-width="10" stroke-linecap="round"/>
+  <!-- text -->
+  <text x="80" y="120" font-size="26" fill="#2B2438" opacity="0.65" letter-spacing="4" font-family="Arial, sans-serif">NOW IN MODE</text>
+  <text x="80" y="290" font-size="104" font-weight="bold" fill="#2B2438">Deep Focus</text>
+  <text x="80" y="360" font-size="42" fill="#2B2438" font-style="italic">“One task. No side quests.”</text>
+  <rect x="80" y="410" width="250" height="54" rx="27" fill="#2B2438"/>
+  <text x="205" y="446" font-size="24" fill="#FFF1DC" text-anchor="middle" font-family="Arial, sans-serif">effort: medium</text>
+  <!-- footer -->
+  <text x="80" y="570" font-size="24" fill="#2B2438" opacity="0.7" font-family="Arial, sans-serif">modedial · modes for coding agents</text>
+  <text x="1120" y="570" font-size="24" fill="#2B2438" opacity="0.7" text-anchor="end" font-family="Arial, sans-serif">sketch · not final</text>
+</svg>

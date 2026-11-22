@@ -1,0 +1,29 @@
+{
+  "name": "modedial",
+  "version": "0.1.0",
+  "description": "Named modes for coding agents, as an MCP server. Switch focus, debug, review and more with one call.",
+  "type": "module",
+  "bin": { "modedial": "dist/cli.js" },
+  "main": "dist/index.js",
+  "files": ["dist", "modes", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "engines": { "node": ">=20" },
+  "keywords": ["mcp", "model-context-protocol", "claude-code", "cursor", "codex", "coding-agent", "modes"],
+  "repository": { "type": "git", "url": "git+https://github.com/mac146/modedial.git" },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}
