@@ -11,7 +11,7 @@ One smoke test per agent, run on 2026-11-22. The prompt was identical each time:
 | Claude Code | current at test time | default | Pass | Also used for the behavior check in `docs/behavior-check`. |
 | Codex CLI | 0.171.0-alpha.13 (VS Code extension build) | gpt-5.6-luna | Pass | In non-interactive `codex exec`, the first run was blocked: "MCP tool call requires approval, but approval policy is never". Adding `default_tools_approval_mode = "approve"` for the server fixed it. In interactive use, Codex asks you to approve the call instead. Its reply also used the Deep Focus tell (`Goal: …`). |
 | opencode | 1.19.6 (run via `npx`) | opencode/big-pickle (free tier) | Pass | The installed 1.14.39 could not use the free tier ("1.18 or newer is required"), unrelated to modedial. The reply used the Deep Focus tell. |
-| Cursor | not tested | n/a | **Untested** | A desktop app with no headless mode, so it can't be scripted here. Manual steps below. |
+| Cursor | desktop app (2026-11-22) | n/a | **Partial** | Verified from Cursor's own logs: it discovered the project-level server, started it, completed the MCP handshake (`initializing → connected`) and listed **5 tools**. The server had to be switched on once in Settings → Tools & MCP. **Not yet verified:** an agent actually calling `set_mode`, because the server's log showed no `set` event afterwards. |
 
 ## Caveats
 - One run per agent. This shows the integration works, not how reliably an agent follows a mode.
