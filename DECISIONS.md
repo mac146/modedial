@@ -25,3 +25,13 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 - **Logging never throws.** A broken disk must not break a tool call.
 - **Log rotation:** at 1 MB the log moves to `log.1.jsonl`, and only one old file is kept.
 - **Pinned toolchain** to widely used versions (TypeScript 5.9, Vitest 3) instead of the newest majors.
+
+## 2026-11-22 · Design direction approved: "label printer" (v2)
+- **Approved by the founder** after reviewing the published artifact (v2). The v1 cream/coral dial sketches in `docs/sketches/` are superseded.
+- **Concept:** modes are strips of colored tape with embossed mono type. The landing page hero is a working label printer: press a mode key, tape prints, the page takes the mode's color, and the transcript changes. Also: draggable mode stickers, tape ribbons as section breaks, a "print your own card" widget.
+- **Palette:** six mode colors are the brand (blue #2F5BFF, orange #FF8A3D, green #1FA67A, pink #D6338A, violet #7A4DFF, yellow #F5C400). Neutral cool-grey surfaces, ink #14161B. Light default, dark available.
+- **Type:** Bricolage Grotesque (display), Instrument Sans (body), JetBrains Mono (labels and tape).
+- **Reference file:** `docs/design/landing-v2.html` is a design proposal, not the final landing page. Its transcripts are illustrative and its review notes box must be removed before launch.
+- **Research basis:** structural patterns from Mintlify, Trigger.dev, Greptile, Langfuse and Supabase (short headline, copyable agent setup prompt, real output in the hero, no fake social proof). We could read those sites' text but not their visuals, so the visual language is original.
+- **Still open (defaults assumed until the founder says otherwise):** the card footer project name is opt-in and off by default; the sound toggle stays, off by default; the short key names (Focus, Debug, Tidy, Spark, Review, Quick) stay.
+- **Naming rule kept:** no "Now playing", no music-app terms. The card eyebrow says "Now in mode".

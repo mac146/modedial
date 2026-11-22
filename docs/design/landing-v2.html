@@ -1,0 +1,518 @@
+<title>modedial</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700&display=swap">
+<style>
+/* Layout concept: the page is a label printer. One tactile hero object prints tape for the selected mode, and the whole page takes on that mode's color. Left-aligned copy, printer on the right, tape ribbons as section breaks, a sticker sheet you can drag, and a card you print yourself. */
+:root {
+  --bg: #EDF0F5;
+  --surface: #FFFFFF;
+  --ink: #14161B;
+  --ink-2: #4A5160;
+  --line: #D3D9E3;
+  --soft: #E2E7F0;
+  --pr-top: #FBFCFE; --pr-bot: #D6DCE8; --pr-edge: #AEB7C8; --pr-hi: rgba(255,255,255,.85);
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+  --tape: #FF8A3D;
+  --on: #14161B;
+  --wash: 16%;
+  --page: color-mix(in srgb, var(--tape) var(--wash), var(--bg));
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0E1015; --surface: #171A21; --ink: #F1F3F8; --ink-2: #A3ABBB; --line: #2A2F3A; --soft: #20242D;
+    --pr-top: #2C323E; --pr-bot: #1A1E27; --pr-edge: #0A0C10; --pr-hi: rgba(255,255,255,.12); --wash: 22%;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0E1015; --surface: #171A21; --ink: #F1F3F8; --ink-2: #A3ABBB; --line: #2A2F3A; --soft: #20242D;
+  --pr-top: #2C323E; --pr-bot: #1A1E27; --pr-edge: #0A0C10; --pr-hi: rgba(255,255,255,.12); --wash: 22%;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { overflow-x: clip; }
+body {
+  background: var(--bg);
+  background: var(--page);
+  transition: background-color .5s;
+  color: var(--ink);
+  font: 400 1rem/1.6 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0;
+}
+a { color: inherit; }
+.wrap { max-width: 1120px; margin: 0 auto; }
+section { padding-block: clamp(2.5rem, 6vw, 5rem); }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; letter-spacing: -0.02em; line-height: 1.05; }
+h2 { font-size: clamp(1.9rem, 4vw, 2.8rem); font-weight: 800; }
+p { margin: 0; }
+button { font: inherit; cursor: pointer; color: inherit; }
+.eyebrow { font: 700 .75rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.lede { color: var(--ink-2); max-width: 60ch; font-size: 1.1rem; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+
+.tape {
+  display: inline-flex; align-items: center; gap: .55em;
+  background: var(--tape); color: var(--on);
+  font: 700 .8rem/1 var(--mono); letter-spacing: .09em; text-transform: uppercase;
+  padding: .6em .95em; border-radius: 3px; white-space: nowrap;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.38), inset 0 -2px 0 rgba(0,0,0,.16), 0 1px 1px rgba(0,0,0,.25);
+}
+.tape.big { font-size: clamp(1rem, 2.4vw, 1.35rem); padding: .75em 1.2em; }
+.tape.cut { clip-path: polygon(0 0, 100% 0, 98.5% 16%, 100% 33%, 98.5% 50%, 100% 66%, 98.5% 83%, 100% 100%, 0 100%); padding-right: 1.5em; }
+
+nav { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.1rem; }
+.mark { font: 800 1.35rem/1 var(--display); letter-spacing: -.03em; display: flex; align-items: center; gap: .55rem; text-decoration: none; }
+.mark i { width: 1.1rem; height: .7rem; background: var(--tape); border-radius: 2px; display: inline-block; box-shadow: inset 0 -2px 0 rgba(0,0,0,.18); }
+nav .links { display: flex; gap: 1.4rem; font-size: .95rem; color: var(--ink-2); }
+nav .links a { text-decoration: none; }
+nav .links a:hover { color: var(--ink); }
+
+/* hero */
+.hero { padding-top: clamp(1.5rem, 5vw, 3.5rem); padding-bottom: 3rem; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); gap: clamp(2rem, 5vw, 4rem); align-items: start; }
+h1 { font-size: clamp(2.7rem, 7vw, 5rem); font-weight: 800; margin-block: 1.1rem 1.2rem; }
+h1 em { font-style: normal; background: linear-gradient(transparent 62%, var(--tape) 62% 92%, transparent 92%); padding-inline: .05em; }
+.cmd { margin-top: 1.8rem; display: flex; flex-direction: column; gap: .75rem; max-width: 34rem; }
+.cmdrow { display: flex; align-items: stretch; background: var(--ink); color: var(--bg); border-radius: 6px; overflow: hidden; }
+.cmdrow code { flex: 1; min-width: 0; padding: .85rem 1rem; font: 500 .85rem/1.4 var(--mono); overflow-x: auto; white-space: nowrap; }
+.cmdrow code b { opacity: .5; font-weight: 500; user-select: none; }
+.copy { border: 0; background: transparent; padding: 0 1rem; font: 700 .72rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; border-left: 1px solid rgba(128,128,128,.4); min-width: 5.2rem; }
+.copy:hover { background: rgba(128,128,128,.22); }
+.ghost { align-self: flex-start; border: 1.5px solid var(--ink); background: transparent; border-radius: 6px; padding: .6rem .95rem; font: 600 .9rem/1 var(--body); }
+.ghost:hover { background: var(--ink); color: var(--bg); }
+.fine { font-size: .85rem; color: var(--ink-2); margin-top: 1rem; max-width: 34rem; }
+.tip { font: 500 .75rem/1.4 var(--mono); color: var(--ink-2); margin-top: 1.4rem; display: flex; flex-wrap: wrap; gap: .4rem .9rem; align-items: center; }
+kbd { font: 700 .7rem/1 var(--mono); border: 1px solid var(--ink-2); border-bottom-width: 2px; border-radius: 4px; padding: .25em .45em; }
+
+/* printer */
+.stage { display: flex; flex-direction: column; gap: 1.4rem; align-items: stretch; }
+.printer { width: min(100%, 30rem); margin: 0 auto; }
+.feed { height: 4.6rem; overflow: hidden; display: flex; align-items: flex-end; justify-content: center; padding-bottom: .3rem; }
+.feed .tape { transform: translateY(0); }
+.feed .tape.print { animation: feed .85s steps(14) both; }
+@keyframes feed { from { transform: translateY(115%); } to { transform: translateY(0); } }
+.pbody { position: relative; z-index: 2; border-radius: 1.5rem 1.5rem 1.2rem 1.2rem; padding: 1.5rem 1.2rem 1.1rem; display: flex; flex-direction: column; gap: 1rem;
+  background: linear-gradient(var(--pr-top), var(--pr-bot));
+  box-shadow: inset 0 2px 0 var(--pr-hi), inset 0 -6px 0 rgba(0,0,0,.08), 0 0 0 1px var(--pr-edge), 0 34px 40px -26px rgba(20,22,27,.6); }
+.pbody.clunk { animation: clunk .2s; }
+@keyframes clunk { 30% { transform: translateY(3px) rotate(-.25deg); } 60% { transform: translateY(-1px) rotate(.2deg); } }
+.slot { position: absolute; left: 7%; right: 7%; top: -.42rem; height: .84rem; border-radius: 99px; background: #0d0f13; box-shadow: 0 1px 0 var(--pr-hi); }
+.lcd { background: var(--ink); color: var(--bg); border-radius: 6px; padding: .7rem .9rem; font: 700 .85rem/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; display: flex; align-items: center; gap: .4rem; box-shadow: inset 0 3px 8px rgba(0,0,0,.5); min-height: 2.5rem; }
+.cur { width: .5rem; height: 1rem; background: currentColor; animation: blink 1s steps(2) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.keys { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; padding-bottom: .4rem; }
+.key { --k: var(--tape); --kd: color-mix(in srgb, var(--k) 62%, #000); position: relative; border: 0; border-radius: 9px; padding: .7rem .5rem .6rem; background: linear-gradient(color-mix(in srgb, var(--k) 88%, #fff), var(--k)); color: var(--kon);
+  box-shadow: 0 5px 0 var(--kd), 0 9px 10px -2px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.45); transition: transform .06s, box-shadow .06s; display: flex; flex-direction: column; gap: .15rem; align-items: flex-start; text-align: left; }
+.key:active, .key[aria-pressed="true"] { transform: translateY(4px); box-shadow: 0 1px 0 var(--kd), 0 3px 4px -1px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.3); }
+.key b { font: 700 .66rem/1 var(--mono); opacity: .75; }
+.key span { font: 800 .98rem/1.1 var(--display); letter-spacing: -.01em; }
+.pbrand { display: flex; justify-content: space-between; font: 700 .62rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); }
+.snd { background: none; border: 0; padding: 0; font: 700 .62rem/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-2); text-decoration: underline; text-underline-offset: 3px; }
+
+.console { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.console-head { display: flex; justify-content: space-between; gap: 1rem; padding: .6rem 1rem; border-bottom: 1px solid var(--line); background: var(--soft); font: 500 .72rem/1 var(--mono); color: var(--ink-2); }
+.console-body { padding: 1rem 1.1rem 1.2rem; min-height: 15.5rem; display: flex; flex-direction: column; gap: .8rem; font-size: .92rem; }
+.row { animation: rise .4s both; }
+.row:nth-child(2) { animation-delay: .35s; } .row:nth-child(3) { animation-delay: .7s; }
+@keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.who { font: 700 .66rem/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--ink-2); margin-bottom: .3rem; }
+.call { font: 500 .8rem/1.4 var(--mono); display: flex; flex-wrap: wrap; align-items: center; gap: .6rem; }
+.reply { display: flex; flex-direction: column; gap: .3rem; }
+.reply .hl { font-weight: 600; border-left: 3px solid var(--tape); padding-left: .6rem; }
+
+/* ribbons */
+.ribbon { width: 100vw; margin-left: calc(50% - 50vw); overflow: hidden; padding-block: .9rem; transform: rotate(-1.4deg); }
+.ribbon.r2 { transform: rotate(1.1deg); }
+.track { display: flex; gap: .6rem; width: max-content; animation: slide 46s linear infinite; }
+.ribbon.r2 .track { animation-direction: reverse; animation-duration: 58s; }
+@keyframes slide { to { transform: translateX(calc(-50% - .3rem)); } }
+.track .tape { font-size: .95rem; padding: .75em 1.3em; }
+
+/* stickers */
+.picker { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 2rem; margin-top: 2.5rem; align-items: start; }
+.sheet { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.3rem 1.1rem; padding: .6rem; position: relative; }
+.sticker { position: relative; touch-action: none; user-select: none; cursor: grab; background: var(--tape); color: var(--on); border: 5px solid #fff; border-radius: 18px; padding: 1rem .9rem 1.2rem; min-height: 8.4rem; display: flex; flex-direction: column; justify-content: space-between; gap: .6rem;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.14), 0 12px 18px -8px rgba(0,0,0,.45); transform: translate(var(--dx, 0px), var(--dy, 0px)) rotate(var(--rot, 0deg)); transition: transform .25s; }
+.sticker.drag { transition: none; cursor: grabbing; z-index: 5; box-shadow: 0 0 0 1px rgba(0,0,0,.14), 0 24px 26px -10px rgba(0,0,0,.5); }
+.sticker b { font: 800 1.45rem/1 var(--display); letter-spacing: -.02em; }
+.sticker small { font-size: .82rem; line-height: 1.3; opacity: .9; }
+.sticker::after { content: ""; position: absolute; right: -2px; bottom: -2px; width: 1.5rem; height: 1.5rem; background: linear-gradient(135deg, transparent 50%, rgba(255,255,255,.9) 50%); border-radius: 0 0 12px 0; box-shadow: -2px -2px 4px rgba(0,0,0,.18); }
+.sticker[aria-selected="true"] { outline: 3px solid var(--ink); outline-offset: 4px; }
+.sheetbar { display: flex; justify-content: space-between; align-items: center; margin-top: 1.4rem; font: 500 .75rem/1.4 var(--mono); color: var(--ink-2); gap: 1rem; }
+.sheetbar button { background: none; border: 0; text-decoration: underline; text-underline-offset: 3px; font: inherit; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: clamp(1.2rem, 3vw, 2rem); display: flex; flex-direction: column; gap: 1.2rem; }
+.panel h3 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 700; }
+.meta { display: flex; flex-wrap: wrap; gap: .5rem 1.4rem; font: 500 .8rem/1.4 var(--mono); color: var(--ink-2); }
+.meta b { color: var(--ink); }
+.instr { font: 500 .85rem/1.65 var(--mono); background: var(--soft); border-radius: 6px; padding: 1rem; overflow-wrap: anywhere; }
+.tells { display: flex; flex-wrap: wrap; gap: .5rem; }
+.tells span { font: 700 .75rem/1 var(--mono); padding: .5em .75em; border-radius: 3px; border: 1.5px dashed var(--tape); background: color-mix(in srgb, var(--tape) 14%, transparent); }
+.note { font-size: .82rem; color: var(--ink-2); }
+
+/* print your card */
+.maker { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: 1.5rem; margin-top: 2.5rem; align-items: start; }
+.ctrl { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; align-items: center; }
+.ctrl button.chip { border: 2px solid transparent; padding: 0; background: none; border-radius: 4px; }
+.ctrl button.chip[aria-pressed="true"] { border-color: var(--ink); }
+.ctrl button.chip .tape { font-size: .66rem; }
+.field { display: flex; align-items: center; gap: .6rem; margin-top: .9rem; font: 500 .8rem/1 var(--mono); color: var(--ink-2); flex-wrap: wrap; }
+.field input { font: 500 .9rem/1 var(--mono); background: var(--surface); color: var(--ink); border: 1.5px solid var(--ink); border-radius: 5px; padding: .6rem .7rem; width: 13rem; max-width: 100%; }
+.mcard { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: clamp(1.3rem, 3vw, 2.2rem); aspect-ratio: 1200 / 630; display: flex; flex-direction: column; justify-content: space-between; position: relative; overflow: hidden; container-type: inline-size; }
+.mcard .nm { font: 800 clamp(2rem, 9cqi, 4.6rem)/.95 var(--display); letter-spacing: -.035em; margin-top: 1rem; overflow-wrap: anywhere; }
+.mcard .tg { font-size: clamp(.95rem, 3.2cqi, 1.5rem); color: var(--ink-2); margin-top: .5rem; }
+.mcard .ft { display: flex; justify-content: space-between; font: 500 .72rem/1 var(--mono); color: var(--ink-2); gap: 1rem; }
+.mcard .band { position: absolute; right: 0; top: 0; bottom: 0; width: 14%; background: var(--tape); }
+.mcard .band::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(180deg, transparent 0 14px, rgba(0,0,0,.1) 14px 16px); }
+.mcard > *:not(.band) { max-width: 82%; }
+.rcard { background: var(--ink); color: var(--bg); border-radius: 12px; padding: clamp(1.3rem, 3vw, 2rem); aspect-ratio: 4 / 5; display: flex; flex-direction: column; gap: 1rem; container-type: inline-size; }
+.rcard .eyebrow { color: inherit; opacity: .7; }
+.rcard h3 { font-size: clamp(1.6rem, 11cqi, 2.6rem); font-weight: 800; }
+.bars { display: flex; flex-direction: column; gap: .55rem; margin-top: auto; }
+.bar { display: grid; grid-template-columns: 7.2rem minmax(0, 1fr); gap: .6rem; align-items: center; font: 500 .72rem/1 var(--mono); }
+.bar i { display: block; height: .9rem; background: var(--tape); border-radius: 2px; box-shadow: inset 0 -2px 0 rgba(0,0,0,.18); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .5rem; }
+.stats div { background: rgba(128,128,128,.2); border-radius: 6px; padding: .7rem; }
+.stats b { display: block; font: 800 1.6rem/1 var(--display); }
+.stats span { font: 500 .66rem/1.3 var(--mono); opacity: .75; display: block; margin-top: .3rem; }
+.rcard .ft { font: 500 .68rem/1.3 var(--mono); opacity: .65; }
+
+.steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; margin-top: 2.5rem; padding: 0; }
+.steps li { list-style: none; border-top: 2px solid var(--ink); padding-top: 1rem; display: flex; flex-direction: column; gap: .5rem; }
+.steps h3 { font-size: 1.25rem; font-weight: 700; }
+.steps p { color: var(--ink-2); font-size: .95rem; }
+.tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-top: 2rem; }
+.tabs button { border: 1px solid var(--line); background: var(--surface); border-radius: 5px; padding: .5rem .8rem; font: 600 .85rem/1 var(--body); }
+.tabs button[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.codebox { margin-top: .8rem; max-width: 46rem; }
+.codebox pre { margin: 0; flex: 1; min-width: 0; padding: 1rem; font: 500 .82rem/1.6 var(--mono); overflow-x: auto; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; margin-top: 2.5rem; }
+.two > div { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.5rem; display: flex; flex-direction: column; gap: .8rem; }
+.two h3 { font-size: 1.3rem; font-weight: 700; }
+.two ul { margin: 0; padding-left: 1.1rem; color: var(--ink-2); display: flex; flex-direction: column; gap: .4rem; }
+.close { background: var(--ink); color: var(--bg); border-radius: 14px; padding: clamp(2rem, 6vw, 4rem); display: flex; flex-direction: column; gap: 1.4rem; align-items: flex-start; }
+.close h2 { max-width: 16ch; }
+.close .cmdrow { background: var(--bg); color: var(--ink); width: 100%; max-width: 34rem; }
+footer { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; justify-content: space-between; padding-block: 2rem 2.5rem; color: var(--ink-2); font-size: .88rem; }
+.review { background: var(--surface); border: 1.5px dashed var(--ink-2); border-radius: 10px; padding: clamp(1.2rem, 3vw, 2rem); margin-bottom: 2.5rem; display: grid; gap: 1.2rem; }
+.review h2 { font-size: 1.5rem; }
+.review .cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+.review h3 { font: 700 .75rem/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; margin-bottom: .6rem; }
+.review ul { margin: 0; padding-left: 1.05rem; display: flex; flex-direction: column; gap: .35rem; font-size: .9rem; color: var(--ink-2); }
+
+@media (max-width: 860px) {
+  .hero-grid, .picker, .maker, .two, .review .cols, .steps { grid-template-columns: minmax(0, 1fr); }
+  .rcard { aspect-ratio: auto; min-height: 30rem; }
+  nav .links a:not(:last-child) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .row, .feed .tape.print, .pbody.clunk, .track, .cur { animation: none !important; }
+  * { transition: none !important; }
+}
+</style>
+
+<body>
+<div class="wrap">
+  <nav aria-label="Main">
+    <a class="mark" href="#top"><i aria-hidden="true"></i>modedial</a>
+    <div class="links"><a href="#modes">Modes</a><a href="#cards">Make a card</a><a href="#install">Install</a><a href="https://github.com/mac146/modedial">GitHub</a></div>
+  </nav>
+
+  <section class="hero" id="top">
+    <div class="hero-grid">
+      <div>
+        <p class="eyebrow">Modes for coding agents · MCP</p>
+        <h1>Pick a <em>mode</em> for your agent.</h1>
+        <p class="lede">Say “debug mode” and your agent gets a short set of instructions to follow. Six modes, one call, for Claude Code, Cursor, Codex and other MCP clients.</p>
+        <div class="cmd">
+          <div class="cmdrow"><code><b>$ </b>claude mcp add modedial -- npx -y modedial</code><button class="copy" data-copy="claude mcp add modedial -- npx -y modedial">Copy</button></div>
+          <button class="ghost" data-copy="Add the modedial MCP server (npx -y modedial). When I ask for a mode such as deep focus or debug mode, call list_modes if unsure, then set_mode, and follow the returned instructions until end_mode or I pick another.">Copy a setup prompt for your agent</button>
+        </div>
+        <p class="fine">A mode is a nudge, not a lock. The tool returns instructions and the agent chooses to follow them. No telemetry, no network calls, no account.</p>
+        <p class="tip"><span>Try the printer:</span><span><kbd>1</kbd>–<kbd>6</kbd> press a key</span></p>
+      </div>
+
+      <div class="stage">
+        <div class="printer" id="printer">
+          <div class="feed"><span class="tape big cut" id="feedTape">Debug Mode</span></div>
+          <div class="pbody" id="pbody">
+            <div class="slot" aria-hidden="true"></div>
+            <div class="lcd" aria-live="polite"><span id="lcdTxt">MODE ▸ DEBUG MODE</span><i class="cur" aria-hidden="true"></i></div>
+            <div class="keys" id="keys"></div>
+            <div class="pbrand"><span>modedial MD-6</span><button class="snd" id="snd" aria-pressed="false">Sound off</button></div>
+          </div>
+        </div>
+        <div class="console" aria-live="polite">
+          <div class="console-head"><span>agent · ~/my-app</span><span>illustrative transcript</span></div>
+          <div class="console-body" id="heroBody"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ribbon" aria-hidden="true"><div class="track" id="trackA"></div></div>
+
+  <section id="modes">
+    <p class="eyebrow">The six modes</p>
+    <h2>Each mode has a visible tell.</h2>
+    <p class="lede" style="margin-top:1rem">The instructions stay under 150 tokens, and each one asks the agent to show its working in a recognizable way, so you can tell which mode is on. Peel, drag and pick a sticker.</p>
+    <div class="picker">
+      <div>
+        <div class="sheet" id="sheet" role="listbox" aria-label="Modes"></div>
+        <div class="sheetbar"><span>drag stickers anywhere</span><button id="reset">Tidy up</button></div>
+      </div>
+      <div class="panel" id="panel" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <section id="cards">
+    <p class="eyebrow">Share it</p>
+    <h2>Print your own card.</h2>
+    <p class="lede" style="margin-top:1rem">Every switch makes a card, and every month makes a recap. Both are built on your machine from a local log of mode names and times. Nothing is uploaded unless you post the image yourself.</p>
+    <div class="maker">
+      <div>
+        <div class="ctrl" id="chips" role="group" aria-label="Card mode"></div>
+        <div class="mcard" id="mcard">
+          <div class="band" aria-hidden="true"></div>
+          <div><span class="tape">Now in mode</span><div class="nm" id="cardName">Deep Focus</div><div class="tg" id="cardTag">“One task. No side quests.”</div></div>
+          <div class="ft"><span id="cardFoot">modedial · my-app</span><span id="cardEff">effort: medium</span></div>
+        </div>
+        <div class="field"><label for="proj">project footer</label><input id="proj" type="text" maxlength="24" value="my-app" autocomplete="off" spellcheck="false"><span>stays in your browser</span></div>
+      </div>
+      <div class="rcard" style="--tape:#FF8A3D">
+        <p class="eyebrow">Agent recap · sample</p>
+        <h3>The Methodical Tinkerer</h3>
+        <div class="stats"><div><b>42</b><span>mode switches</span></div><div><b>94m</b><span>longest stretch</span></div><div><b>Night</b><span>top time of day</span></div></div>
+        <div class="bars" aria-label="Top modes">
+          <div class="bar" style="--tape:#FF8A3D"><span>Debug</span><i style="width:100%"></i></div>
+          <div class="bar" style="--tape:#2F5BFF"><span>Deep Focus</span><i style="width:64%"></i></div>
+          <div class="bar" style="--tape:#1FA67A"><span>Chill Refactor</span><i style="width:43%"></i></div>
+        </div>
+        <div class="ft">Sample numbers. The personality label is just for fun. Built from my local log.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="ribbon r2" aria-hidden="true"><div class="track" id="trackB"></div></div>
+
+  <section id="how">
+    <p class="eyebrow">How it works</p>
+    <h2>Three steps, no account.</h2>
+    <ol class="steps">
+      <li><h3>Add the server</h3><p>One command registers it with your agent. Paste the short snippet into CLAUDE.md or AGENTS.md so the agent uses it reliably.</p></li>
+      <li><h3>Ask for a mode</h3><p>“Debug mode.” The agent calls <span style="font-family:var(--mono);font-size:.85em">set_mode</span> and follows the instructions it gets back.</p></li>
+      <li><h3>Keep the card</h3><p>Export the latest mode card, or the recap, and post it if you like.</p></li>
+    </ol>
+  </section>
+
+  <section id="install" style="padding-top:0">
+    <p class="eyebrow">Install</p>
+    <h2>Pick your agent.</h2>
+    <div class="tabs" role="tablist" id="itabs" aria-label="Agent"></div>
+    <div class="cmdrow codebox"><pre id="icode"></pre><button class="copy" id="icopy">Copy</button></div>
+    <p class="fine" id="inote"></p>
+  </section>
+
+  <section>
+    <p class="eyebrow">Plainly</p>
+    <h2>What it is, and what it isn’t.</h2>
+    <div class="two">
+      <div><h3>What you get</h3><ul><li>Six bundled modes, each under 150 tokens.</li><li>A card on every switch, and a recap from your own log.</li><li>Open source, MIT licensed.</li></ul></div>
+      <div><h3>What we don’t claim</h3><ul><li>That modes improve results. We haven’t measured that.</li><li>That agents feel anything. These are instructions, not moods.</li><li>That an MCP tool can force behavior. It can’t.</li></ul></div>
+    </div>
+  </section>
+
+  <section style="padding-top:0">
+    <div class="close">
+      <span class="tape">Ready</span>
+      <h2>Give your agent a mode.</h2>
+      <div class="cmdrow"><code><b>$ </b>claude mcp add modedial -- npx -y modedial</code><button class="copy" data-copy="claude mcp add modedial -- npx -y modedial">Copy</button></div>
+    </div>
+    <footer><span>modedial · MIT · built by mac146</span><span>Modes are bundled and never fetched from the network.</span></footer>
+  </section>
+
+  <aside class="review" aria-label="Review notes">
+    <h2>Review notes (remove before launch)</h2>
+    <div class="cols">
+      <div><h3>What’s new in v2</h3><ul>
+        <li>The hero is a working label printer. Press a key and tape prints, the page re-themes, and the transcript changes.</li>
+        <li>It plays itself on load, then stops the moment you touch it.</li>
+        <li>Stickers you can peel, drag and tidy. Tape ribbons as section breaks.</li>
+        <li>A card you print yourself, with a live project footer.</li>
+        <li>Easter eggs: keys 1–6, and an optional click sound (off by default).</li>
+      </ul></div>
+      <div><h3>Why these choices</h3><ul>
+        <li>Research pointed to one tactile hero object and motion that mirrors how the product works. Here, a mode switch prints a label.</li>
+        <li>The transcripts are illustrative, from the tells in our own test runs.</li>
+        <li>Wholesome and original: no music-app look, no emotion claims.</li>
+      </ul></div>
+      <div><h3>Please decide</h3><ul>
+        <li>Is the printer the hero, or too much of a toy for a developer tool?</li>
+        <li>Should the real card footer show the project folder name? It stays local, but it is a privacy choice.</li>
+        <li>Keep the sound toggle, or cut it?</li>
+        <li>Keys use short names (Focus, Debug, Tidy, Spark, Review, Quick). Rename any?</li>
+      </ul></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+const MODES = [
+  { id:"deep-focus", name:"Deep Focus", key:"Focus", tagline:"One task. No side quests.", effort:"medium", ctx:"Keep to one task; read only files the task needs.", tape:"#2F5BFF", on:"#FFFFFF", rot:-2,
+    ins:"Begin your reply with one line: \"Goal: <the single task>\". Work only on that goal; do not refactor, rename, or fix unrelated code. Ask before widening scope. Keep replies short. End with a section titled \"Set aside:\" listing anything you noticed but deliberately left alone, or \"Set aside: nothing\".",
+    tells:["Goal: …","Set aside: …"], you:"fix the pagination bug, nothing else",
+    out:[["hl","Goal: stop paginate() dropping the last item of each page."],["","Set aside: fmt() uses var and skips zero-padding. Not touched."]] },
+  { id:"debug", name:"Debug Mode", key:"Debug", tagline:"Reproduce first. Guess later.", effort:"high", ctx:"Gather logs, errors and the failing path first.", tape:"#FF8A3D", on:"#14161B", rot:1.5,
+    ins:"Reproduce the problem before changing anything. State one hypothesis at a time and the evidence for it. Make the smallest possible change that tests it. Confirm the fix by re-running the failing case, and say plainly if it is not confirmed. Do not bundle unrelated cleanups.",
+    tells:["Hypothesis","Ruled out","Unconfirmed until re-run"], you:"this test is flaky, debug it",
+    out:[["hl","Reproduced: fails 2 of 5 runs."],["","Hypothesis: shared fixture state leaks. Ruled out: timeouts, network."],["hl","Fix is unconfirmed until it passes 10 runs in a row."]] },
+  { id:"chill-refactor", name:"Chill Refactor", key:"Tidy", tagline:"Tidy up, no behavior change.", effort:"low", ctx:"Stay inside the files being tidied.", tape:"#1FA67A", on:"#FFFFFF", rot:-1,
+    ins:"Improve structure and naming without changing behavior. Work in small steps, running tests after each when possible. Prefer deleting code over adding it; add no features or dependencies. If a risky area lacks tests, say so. End every reply with a short note titled \"Changed / left alone:\" with a \"Changed:\" line and a \"Left alone:\" line.",
+    tells:["Changed / left alone:"], you:"tidy up utils/date.ts",
+    out:[["","Renamed three helpers, removed two dead branches. Tests pass after each step."],["hl","Changed / left alone:"],["","Changed: names, dead code. Left alone: public API, behavior."]] },
+  { id:"creative-sprint", name:"Creative Sprint", key:"Spark", tagline:"Three ideas before one plan.", effort:"medium", ctx:"Broad is fine; explore, then converge on one.", tape:"#D6338A", on:"#FFFFFF", rot:2,
+    ins:"Before building, propose three distinct approaches in one or two lines each, including one unconventional option. Recommend one and say why. Then build a rough version of it quickly. Favor interesting over safe, but flag the risks. Keep polish and edge cases for later.",
+    tells:["Three approaches","One recommendation"], you:"ideas for the empty state?",
+    out:[["","1. Checklist of first steps. 2. Pre-filled sample data. 3. A tiny playable demo."],["hl","Recommend 2: it shows the product working at a glance."],["","Risk: sample data can be mistaken for real data."]] },
+  { id:"careful-reviewer", name:"Careful Reviewer", key:"Review", tagline:"Read twice, comment once.", effort:"high", ctx:"Read the full diff and the code around it.", tape:"#7A4DFF", on:"#FFFFFF", rot:-1.5,
+    ins:"Review without editing files unless asked. Check correctness, edge cases, error handling, security, and tests. Rank findings by severity and cite file and line. Separate must-fix from nice-to-have. Say what you did not check. Do not report style nits unless they hide a bug.",
+    tells:["Must-fix","Nice-to-have","Not checked"], you:"review PR 42",
+    out:[["hl","Must-fix: the loop runs to items.length inclusive (cart.js:14)."],["hl","Must-fix: SQL built by string concatenation (orders.js:31)."],["","Nice-to-have: a regression test. Not checked: callers outside this diff."]] },
+  { id:"fast-prototype", name:"Fast Prototype", key:"Quick", tagline:"Make it work, then make it nice.", effort:"low", ctx:"Read just enough to start; prefer building and running.", tape:"#F5C400", on:"#14161B", rot:1,
+    ins:"Get a working version running as fast as possible. Use the simplest approach and existing dependencies. Skip abstractions, exhaustive error handling, and full test coverage. Mark shortcuts with a TODO so they are easy to find. Show how to run it in one line.",
+    tells:["TODO markers","Run it in one line"], you:"prototype a CSV importer",
+    out:[["hl","Run: node import.js sample.csv"],["","Works for the happy path."],["","TODO: validate headers. TODO: stream large files."]] }
+];
+const $ = (s, r=document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const setTape = (el, m) => { el.style.setProperty("--tape", m.tape); el.style.setProperty("--on", m.on); };
+const root = document.documentElement;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* sound (off by default; plays only after a click) */
+let sound = false, ac = null;
+function thunk() {
+  if (!sound) return;
+  try {
+    ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+    const t = ac.currentTime, g = ac.createGain(); g.connect(ac.destination);
+    const o = ac.createOscillator(); o.type = "square"; o.frequency.setValueAtTime(180, t); o.frequency.exponentialRampToValueAtTime(60, t + .08);
+    g.gain.setValueAtTime(.08, t); g.gain.exponentialRampToValueAtTime(.001, t + .12); o.connect(g); o.start(t); o.stop(t + .13);
+  } catch (e) {}
+}
+$("#snd").addEventListener("click", e => { sound = !sound; e.currentTarget.textContent = sound ? "Sound on" : "Sound off"; e.currentTarget.setAttribute("aria-pressed", sound); thunk(); });
+
+/* printer */
+const keys = $("#keys"), pbody = $("#pbody"), feedTape = $("#feedTape");
+MODES.forEach((m, i) => {
+  const b = document.createElement("button");
+  b.className = "key"; b.setAttribute("aria-pressed", "false"); b.setAttribute("aria-label", m.name + " (key " + (i + 1) + ")");
+  b.style.setProperty("--k", m.tape); b.style.setProperty("--kon", m.on);
+  b.innerHTML = "<b>" + (i + 1) + "</b><span>" + esc(m.key) + "</span>";
+  b.addEventListener("click", () => { stopAuto(); press(i); });
+  keys.appendChild(b);
+});
+let cur = -1, auto = null, ai = 0;
+function press(i, quiet) {
+  const m = MODES[i]; cur = i;
+  setTape(root, m); setTape(feedTape, m);
+  [...keys.children].forEach((b, j) => b.setAttribute("aria-pressed", j === i));
+  $("#lcdTxt").textContent = "MODE ▸ " + m.name;
+  feedTape.textContent = m.name;
+  feedTape.classList.remove("print"); pbody.classList.remove("clunk"); void feedTape.offsetWidth;
+  feedTape.classList.add("print"); pbody.classList.add("clunk");
+  thunk();
+  $("#heroBody").innerHTML =
+    '<div class="row"><div class="who">You</div><div>' + esc(m.you) + '</div></div>' +
+    '<div class="row"><div class="who">Tool call</div><div class="call"><span>modedial.set_mode("' + m.id + '")</span><span class="tape">' + esc(m.name) + '</span></div></div>' +
+    '<div class="row"><div class="who">Agent</div><div class="reply">' + m.out.map(l => '<div class="' + l[0] + '">' + esc(l[1]) + '</div>').join("") + '</div></div>';
+}
+function stopAuto() { clearInterval(auto); auto = null; }
+function startAuto() { if (reduce) return; const order = [1, 0, 2, 4]; auto = setInterval(() => { ai = (ai + 1) % order.length; press(order[ai]); }, 7000); }
+press(1); startAuto();
+addEventListener("keydown", e => {
+  if (e.target.closest("input, textarea") || e.metaKey || e.ctrlKey || e.altKey) return;
+  const n = +e.key; if (n >= 1 && n <= 6) { stopAuto(); press(n - 1); }
+});
+
+/* ribbons */
+function ribbon(el, order) {
+  const seg = order.map(i => '<span class="tape" style="--tape:' + MODES[i].tape + ';--on:' + MODES[i].on + '">' + esc(MODES[i].name) + '</span>').join("");
+  el.innerHTML = seg + seg + seg + seg;
+}
+ribbon($("#trackA"), [0, 1, 2, 3, 4, 5]); ribbon($("#trackB"), [5, 3, 1, 4, 2, 0]);
+
+/* stickers */
+const sheet = $("#sheet"), panel = $("#panel");
+MODES.forEach((m, i) => {
+  const s = document.createElement("div");
+  s.className = "sticker"; s.tabIndex = 0; s.setAttribute("role", "option"); s.id = "st-" + m.id;
+  setTape(s, m); s.style.setProperty("--rot", m.rot + "deg");
+  s.innerHTML = "<b>" + esc(m.name) + "</b><small>" + esc(m.tagline) + "</small>";
+  let sx = 0, sy = 0, ox = 0, oy = 0, moved = false, down = false;
+  s.addEventListener("pointerdown", e => { down = true; moved = false; sx = e.clientX; sy = e.clientY; ox = parseFloat(s.style.getPropertyValue("--dx")) || 0; oy = parseFloat(s.style.getPropertyValue("--dy")) || 0; s.setPointerCapture(e.pointerId); });
+  s.addEventListener("pointermove", e => {
+    if (!down) return; const dx = e.clientX - sx, dy = e.clientY - sy;
+    if (!moved && Math.hypot(dx, dy) < 5) return; moved = true; s.classList.add("drag");
+    s.style.setProperty("--dx", (ox + dx) + "px"); s.style.setProperty("--dy", (oy + dy) + "px");
+  });
+  const end = () => { if (!down) return; down = false; s.classList.remove("drag"); if (!moved) pick(i); };
+  s.addEventListener("pointerup", end); s.addEventListener("pointercancel", () => { down = false; s.classList.remove("drag"); });
+  s.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(i); } });
+  sheet.appendChild(s);
+});
+$("#reset").addEventListener("click", () => [...sheet.children].forEach(s => { s.style.setProperty("--dx", "0px"); s.style.setProperty("--dy", "0px"); }));
+function pick(i) {
+  const m = MODES[i];
+  [...sheet.children].forEach((b, j) => b.setAttribute("aria-selected", j === i));
+  setTape(panel, m);
+  panel.innerHTML =
+    '<span class="tape big" style="align-self:flex-start">' + esc(m.name) + '</span>' +
+    '<h3>' + esc(m.tagline) + '</h3>' +
+    '<div class="meta"><span>effort hint <b>' + m.effort + '</b></span><span>context <b>' + esc(m.ctx) + '</b></span></div>' +
+    '<div><div class="eyebrow" style="margin-bottom:.5rem">What the agent receives</div><div class="instr">' + esc(m.ins) + '</div></div>' +
+    '<div><div class="eyebrow" style="margin-bottom:.5rem">What you’ll see</div><div class="tells">' + m.tells.map(t => '<span>' + esc(t) + '</span>').join("") + '</div></div>' +
+    '<p class="note">Seen in one test run per mode with Claude Code. That shows the format appeared, not that results are better.</p>';
+}
+pick(0);
+
+/* card maker */
+const chips = $("#chips"), mcard = $("#mcard"); let cm = 0;
+MODES.forEach((m, i) => {
+  const b = document.createElement("button"); b.className = "chip"; b.setAttribute("aria-pressed", "false"); b.setAttribute("aria-label", m.name);
+  b.innerHTML = '<span class="tape" style="--tape:' + m.tape + ';--on:' + m.on + '">' + esc(m.key) + '</span>';
+  b.addEventListener("click", () => { cm = i; card(); }); chips.appendChild(b);
+});
+function card() {
+  const m = MODES[cm]; setTape(mcard, m);
+  [...chips.children].forEach((b, j) => b.setAttribute("aria-pressed", j === cm));
+  $("#cardName").textContent = m.name; $("#cardTag").textContent = "“" + m.tagline + "”";
+  $("#cardEff").textContent = "effort: " + m.effort;
+  $("#cardFoot").textContent = "modedial · " + ($("#proj").value.trim() || "my-app");
+}
+$("#proj").addEventListener("input", card); card();
+
+/* install */
+const INSTALL = [
+  { k:"Claude Code", code:"claude mcp add modedial -- npx -y modedial", note:"Tested by us." },
+  { k:"Cursor", code:'{\n  "mcpServers": {\n    "modedial": { "command": "npx", "args": ["-y", "modedial"] }\n  }\n}', note:"Add to .cursor/mcp.json. Untested by us." },
+  { k:"Codex CLI", code:'[mcp_servers.modedial]\ncommand = "npx"\nargs = ["-y", "modedial"]', note:"Add to ~/.codex/config.toml. Untested by us." },
+  { k:"Other", code:"npx -y modedial", note:"Run it as a stdio MCP server. On Windows some clients need: cmd /c npx -y modedial." }
+];
+const tabs = $("#itabs"); let icur = INSTALL[0].code;
+INSTALL.forEach((x, i) => { const b = document.createElement("button"); b.setAttribute("role", "tab"); b.textContent = x.k; b.addEventListener("click", () => showInstall(i)); tabs.appendChild(b); });
+function showInstall(i) { const x = INSTALL[i]; icur = x.code; [...tabs.children].forEach((b, j) => b.setAttribute("aria-selected", j === i)); $("#icode").textContent = x.code; $("#inote").textContent = x.note; }
+showInstall(0);
+$("#icopy").addEventListener("click", e => copy(icur, e.currentTarget));
+
+/* copy */
+function copy(text, btn) {
+  const done = () => { const t = btn.textContent; btn.textContent = "Copied"; setTimeout(() => btn.textContent = t, 1400); };
+  try { navigator.clipboard.writeText(text).then(done, () => sel(btn)); } catch (e) { sel(btn); }
+}
+function sel(btn) { const code = btn.parentElement.querySelector("code, pre"); if (code) { const r = document.createRange(); r.selectNodeContents(code); const s = getSelection(); s.removeAllRanges(); s.addRange(r); } }
+document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => copy(b.dataset.copy, b)));
+</script>
