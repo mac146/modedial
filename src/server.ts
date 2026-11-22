@@ -2,7 +2,9 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { EventLog } from "./log.js";
+import { writeLatestCard } from "./cards.js";
 import { findMode, formatModeBundle, loadModes, type Mode } from "./modes.js";
+import { dataDir } from "./paths.js";
 import { computeRecap, formatRecap } from "./stats.js";
 
 const text = (t: string, isError = false) => ({
@@ -10,9 +12,12 @@ const text = (t: string, isError = false) => ({
   ...(isError ? { isError: true } : {}),
 });
 
-export function createServer(opts: { modes?: Mode[]; log?: EventLog; version?: string } = {}) {
+export function createServer(
+  opts: { modes?: Mode[]; log?: EventLog; version?: string; cardDir?: string; cards?: boolean } = {},
+) {
   const modes = opts.modes ?? loadModes();
   const log = opts.log ?? new EventLog();
+  const cardsOn = opts.cards ?? process.env.MODEDIAL_NO_CARD !== "1";
   const session = randomBytes(4).toString("hex");
   let current: Mode | null = null;
 
@@ -36,7 +41,16 @@ export function createServer(opts: { modes?: Mode[]; log?: EventLog; version?: s
       if (!m) return text(`Unknown mode "${id}". Valid ids: ${modes.map((x) => x.id).join(", ")}`, true);
       current = m;
       log.append({ t: new Date().toISOString(), e: "set", mode: m.id, s: session });
-      return text(formatModeBundle(m));
+      let bundle = formatModeBundle(m);
+      if (cardsOn) {
+        try {
+          const file = writeLatestCard(m, opts.cardDir ?? dataDir());
+          bundle += `\n\n(Mode card saved locally: ${file})`;
+        } catch {
+          /* a card failure must never break a mode switch */
+        }
+      }
+      return text(bundle);
     },
   );
 

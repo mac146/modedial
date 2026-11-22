@@ -35,3 +35,12 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 - **Research basis:** structural patterns from Mintlify, Trigger.dev, Greptile, Langfuse and Supabase (short headline, copyable agent setup prompt, real output in the hero, no fake social proof). We could read those sites' text but not their visuals, so the visual language is original.
 - **Still open (defaults assumed until the founder says otherwise):** the card footer project name is opt-in and off by default; the sound toggle stays, off by default; the short key names (Focus, Debug, Tidy, Spark, Review, Quick) stay.
 - **Naming rule kept:** no "Now playing", no music-app terms. The card eyebrow says "Now in mode".
+
+## 2026-11-22 · Phase 3: cards and recap
+- **Renderer:** SVG templates in `src/render/templates.ts`, rasterized by `@resvg/resvg-js` with only bundled fonts (system fonts ignored) so output is identical on every OS. Fonts are Bricolage Grotesque, Instrument Sans and JetBrains Mono (SIL OFL; licenses are in `fonts/`). Total package is about 300 kB.
+- **Glyphs instead of emoji** in images (`src/render/glyphs.ts`), because emoji render differently per OS. Text tool output still uses the emoji from the mode data.
+- **Mode data gained `color` and `text_color`**, so the brand colors live with the modes.
+- **Card on every `set_mode`:** saved to `cards/latest.png` in the data folder. A render failure never breaks the switch. The tool result adds one short line with the local path (about 15 tokens).
+- **Card footer project name is opt-in** via `MODEDIAL_CARD_PROJECT=1` (default off), taken from the folder name, drawn into the image only and never written to the log.
+- **Recap image** shows the top 3 modes by switches, total switches, longest stretch, busiest time of day, and the playful personality label. It refuses to draw when the log is empty.
+- **Claims audit:** the landing copy said it works "for Claude Code, Cursor, Codex". Only Claude Code is tested, so it now says "Tested with Claude Code, with setup for Cursor, Codex and other MCP clients". There is no benchmark for any performance claim, and none is made. What we have is a 1-run-per-cell observational check of response style.

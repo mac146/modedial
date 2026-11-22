@@ -6,6 +6,7 @@ export interface Recap {
   topModes: string[];
   byTimeOfDay: Record<"morning" | "afternoon" | "evening" | "night", string | null>;
   longestStreak: { mode: string; minutes: number } | null;
+  busiestTime: "morning" | "afternoon" | "evening" | "night" | null;
   personality: string;
 }
 
@@ -73,11 +74,21 @@ export function computeRecap(events: LogEvent[]): Recap {
     const top = Object.entries(timeCounts[k]!).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
     byTimeOfDay[k] = top ? top[0] : null;
   }
+  let busiestTime: Recap["busiestTime"] = null;
+  let busiestCount = 0;
+  for (const k of ["morning", "afternoon", "evening", "night"] as const) {
+    const n = Object.values(timeCounts[k]!).reduce((a, b) => a + b, 0);
+    if (n > busiestCount) {
+      busiestCount = n;
+      busiestTime = k;
+    }
+  }
   return {
     totalSwitches: total,
     perMode,
     topModes,
     byTimeOfDay,
+    busiestTime,
     longestStreak: longest,
     personality: personality(topModes[0], total),
   };

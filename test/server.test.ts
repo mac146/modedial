@@ -1,6 +1,6 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { InMemoryTransport } from "@modelcontextprotocol/sdk/inMemory.js";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { appendFileSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
@@ -15,7 +15,7 @@ beforeEach(async () => {
   dir = mkdtempSync(join(tmpdir(), "modedial-"));
   log = new EventLog(dir, true);
   const [a, b] = InMemoryTransport.createLinkedPair();
-  await createServer({ log }).connect(b);
+  await createServer({ log, cardDir: dir }).connect(b);
   client = new Client({ name: "test", version: "0" });
   await client.connect(a);
 });
@@ -42,6 +42,24 @@ describe("tools", () => {
     expect(r.text).toMatch(/Follow these instructions/);
     expect((await call("current_mode")).text).toMatch(/deep-focus/);
     expect(readFileSync(log.file, "utf8")).toMatch(/"mode":"deep-focus"/);
+  });
+
+  it("set_mode saves a card locally and mentions where", async () => {
+    const r = await call("set_mode", { id: "debug" });
+    expect(r.text).toMatch(/Mode card saved locally/);
+    expect(existsSync(join(dir, "cards", "latest.png"))).toBe(true);
+  });
+
+  it("a failing card render never breaks set_mode", async () => {
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    await createServer({ log, cardDir: join(dir, "log.jsonl", "nope") }).connect(b); // file in the way
+    appendFileSync(join(dir, "log.jsonl"), "");
+    const c = new Client({ name: "t", version: "0" });
+    await c.connect(a);
+    const r = (await c.callTool({ name: "set_mode", arguments: { id: "debug" } })) as { isError?: boolean; content: { text: string }[] };
+    expect(r.isError).toBeFalsy();
+    expect(r.content[0]!.text).toMatch(/Debug Mode/);
+    expect(r.content[0]!.text).not.toMatch(/card saved/);
   });
 
   it("rejects unknown ids with the valid list", async () => {

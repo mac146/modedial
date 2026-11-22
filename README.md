@@ -60,9 +60,23 @@ instead of switching silently.
 ## CLI
 
 ```bash
-npx modedial list     # show modes
-npx modedial recap    # recap from your local log
+npx modedial list                      # show modes
+npx modedial card                      # export the latest mode card (PNG, 1200x630)
+npx modedial card --mode debug         # render a card for any mode
+npx modedial recap                     # recap from your local log, as text
+npx modedial recap --image             # recap as a PNG (1080x1350)
 ```
+
+Every `set_mode` also saves a mode card to `cards/latest.png` in the data folder below. Cards and recaps are drawn on your machine with bundled open-licensed fonts, so they look the same on every OS. Posting one is your choice; nothing is uploaded.
+
+## Settings
+
+| Variable | Effect |
+|---|---|
+| `MODEDIAL_HOME` | Use this folder for the log and cards |
+| `MODEDIAL_NO_LOG=1` | Do not write the local log |
+| `MODEDIAL_NO_CARD=1` | Do not save a card on `set_mode` |
+| `MODEDIAL_CARD_PROJECT=1` | Show the project folder name in the card footer (off by default; drawn into the image only, never logged) |
 
 ## Develop
 

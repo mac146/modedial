@@ -25,6 +25,15 @@ describe("computeRecap", () => {
     expect(r.personality).toBe("The Methodical Tinkerer");
   });
 
+  it("finds the busiest time of day", () => {
+    const r = computeRecap([
+      ev("2026-01-01T03:00:00", "set", "debug"),
+      ev("2026-01-01T03:10:00", "set", "debug"),
+      ev("2026-01-01T09:00:00", "set", "debug"),
+    ]);
+    expect(r.busiestTime).toBe("night");
+  });
+
   it("caps an unfinished run at 4 hours", () => {
     const r = computeRecap([ev("2026-01-01T00:00:00Z", "set", "debug"), ev("2026-01-02T00:00:00Z", "end", "debug")]);
     expect(r.longestStreak?.minutes).toBe(240);

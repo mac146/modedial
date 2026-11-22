@@ -11,6 +11,8 @@ export const ModeSchema = z.object({
   effort_hint: z.enum(["low", "medium", "high"]),
   context_policy: z.string().min(1),
   emoji: z.string().min(1),
+  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  text_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
 });
 
 export type Mode = z.infer<typeof ModeSchema>;
