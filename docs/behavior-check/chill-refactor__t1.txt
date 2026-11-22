@@ -1,4 +1,4 @@
-The bug is the `- 1` in the slice end. `slice(start, end)` already excludes `end`, so `start + size - 1` returns only `size - 1` items per page.
+**Fix:** the bug is the `- 1` in the slice end. `slice(start, end)` already excludes `end`, so `start + size - 1` returns only `size - 1` items.
 
 ```js
 function paginate(items, page, size) {
@@ -7,6 +7,10 @@ function paginate(items, page, size) {
 }
 ```
 
-- **Zero-based pages:** `page * size` treats `page` as zero-based. If your UI sends 1-based pages, the first page will skip a whole page of items. That would be a separate bug, so check the callers.
-- **Tests:** There are none for this function, and I can't run anything in this text-only exercise. I'd add one before shipping. For example, `paginate([1,2,3,4,5], 0, 2)` should return `[1,2]`, and `paginate([1,2,3,4,5], 2, 2)` should return `[5]`.
-- **`fmt`:** I left it as is. The mode is Chill Refactor (no behavior change), and the fix above is the one intentional behavior change. A tidy-up there would be `const x = new Date(d); return \`${x.getMonth() + 1}/${x.getDate()}/${x.getFullYear()}\`;`. Say so if you want it.
+- This fix is a behavior change, which goes beyond this mode's usual tidy-only scope. I made it because it's the task you asked for.
+- `page` is 0-indexed. If callers pass 1-indexed pages, they'll skip the first page. I haven't checked the callers.
+- I have no tests here and can't run anything. Add a quick test, for example `paginate([1,2,3,4,5], 0, 2)` should give `[1,2]`.
+
+Changed / left alone:
+- **Changed:** removed the `- 1` in `paginate`'s slice end.
+- **Left alone:** `fmt`. It works, and tidying it (`var`, the string concatenation, `getMonth()+1` precedence) isn't needed for this bug. I can tidy it separately if you want.

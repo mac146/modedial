@@ -1,4 +1,4 @@
-Chill Refactor is active. It says no new features and no new dependencies. A rate limiter is a feature, so I'm treating your explicit request as the exception. I'm keeping to the spirit of the mode by adding no dependency and keeping the change small. I can't read or edit files in this exercise, so this is a snippet to paste into `app.js`.
+The mode is a no-behavior-change refactor with no new features or dependencies, and a rate limiter is a new feature. You asked for it directly, so I'm giving a small dependency-free version. I can't see `app.js`, so you'll need to paste it in yourself.
 
 ```js
 // Fixed-window limiter: max 5 attempts per IP per 15 minutes.
@@ -8,30 +8,31 @@ const attempts = new Map(); // ip -> { count, resetAt }
 
 function loginLimiter(req, res, next) {
   const now = Date.now();
-  let entry = attempts.get(req.ip);
+  const entry = attempts.get(req.ip);
   if (!entry || entry.resetAt <= now) {
-    entry = { count: 0, resetAt: now + WINDOW_MS };
-    attempts.set(req.ip, entry);
+    attempts.set(req.ip, { count: 1, resetAt: now + WINDOW_MS });
+    return next();
   }
   if (++entry.count > MAX_ATTEMPTS) {
     res.set('Retry-After', Math.ceil((entry.resetAt - now) / 1000));
-    return res.status(429).json({ error: 'Too many login attempts. Try again later.' });
+    return res.status(429).json({ error: 'Too many login attempts, try again later.' });
   }
   next();
 }
 
-// Drop expired entries so the map doesn't grow without bound.
 setInterval(() => {
   const now = Date.now();
   for (const [ip, e] of attempts) if (e.resetAt <= now) attempts.delete(ip);
 }, WINDOW_MS).unref();
 
-app.post('/login', loginLimiter, existingLoginHandler);
+app.post('/login', loginLimiter, loginHandler); // add the limiter to the existing route
 ```
 
-Just add `loginLimiter` before your existing handler in the route. The handler itself doesn't change.
+- **Proxy:** if the app runs behind a proxy or load balancer, set `app.set('trust proxy', 1)`. Otherwise `req.ip` is the proxy's address and every user shares one limit.
+- **Scaling:** the counters live in process memory, so they reset on restart and aren't shared across instances. With more than one instance, use `express-rate-limit` with a Redis store.
+- **Stronger limit:** also limit per username, because attackers can rotate IPs.
+- **Testing:** I couldn't run or test any of this. Add a test that sends 6 bad logins and expects a 429.
 
-- **Behind a proxy:** set `app.set('trust proxy', 1)` or every client will share the proxy's IP. Only do this if you really are behind one.
-- **Multiple instances or restarts:** this limiter is in memory, so the count is per process and resets on restart. For a multi-instance deployment, use `express-rate-limit` with a Redis store. That adds a dependency, so I held off.
-- **Credential stuffing:** per-IP limits don't stop one attacker rotating IPs, or many attackers hitting one account. A per-username limit or backoff would help, if you want it.
-- **Tests:** there are none that I can see. Before merging, add one that sends 6 POSTs to `/login` and expects the 6th to return 429 with a `Retry-After` header. I can't run it in this text-only exercise.
+**Changed / left alone:**
+**Changed:** Nothing on disk. I only gave you a snippet to add `loginLimiter` to `POST /login`.
+**Left alone:** `app.js`, the other routes, `express.json()`, and dependencies (I added none).

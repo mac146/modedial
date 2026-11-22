@@ -1,32 +1,33 @@
-Deep Focus is on. Here's the rate limiter for `POST /login`, using `express-rate-limit`. I couldn't see your `app.js`, so I wrote this against what you described.
+Goal: Add a rate limiter to POST /login in app.js to slow password guessing.
 
-Install:
-```
+I can't see your app.js, so this is a drop-in snippet using `express-rate-limit`:
+
+```bash
 npm install express-rate-limit
 ```
 
-Add it to `app.js`:
 ```js
 const rateLimit = require('express-rate-limit');
 
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,     // 15-minute window
-  limit: 5,                     // 5 attempts per IP per window
-  standardHeaders: 'draft-7',   // send RateLimit-* headers
+  windowMs: 15 * 60 * 1000,      // 15-minute window
+  limit: 5,                      // 5 attempts per IP per window
+  skipSuccessfulRequests: true,  // only failed logins count
+  standardHeaders: 'draft-7',
   legacyHeaders: false,
-  skipSuccessfulRequests: true, // only failed logins count toward the limit
   message: { error: 'Too many login attempts. Try again later.' },
 });
 
 app.post('/login', loginLimiter, (req, res) => {
-  // existing handler
+  // existing handler unchanged
 });
 ```
 
-- **Placement:** The limiter goes on the route, not in `app.use`, so only `/login` is limited.
-- **Success handling:** `skipSuccessfulRequests: true` means legitimate users who log in correctly aren't locked out. This only works if your handler returns a 4xx status on a failed login. If it returns 200 with an error body, remove that option.
-- **Proxy:** If the app runs behind a proxy or load balancer (nginx, Heroku, etc.), add `app.set('trust proxy', 1)` before the route. Without it, every client appears to share the proxy's IP and gets limited together.
-- **Multiple instances:** The default store is in memory and per process. If you run several instances, use a shared store such as `rate-limit-redis`.
-- **Distributed guessing:** An IP limit doesn't stop an attacker who spreads guesses across many IPs against one account. For that, add a per-username limiter with `keyGenerator: (req) => req.body.username`, or lock the account temporarily after repeated failures.
+Notes:
+- Put `loginLimiter` only on the `/login` route. That keeps the change scoped, since the app has no other middleware besides `express.json()`.
+- `skipSuccessfulRequests` only works if the handler returns a 2xx status on success and a 4xx, such as 401, on failure.
+- If the app is behind a proxy or load balancer, set `app.set('trust proxy', 1)`. Without it, every client appears to share the proxy's IP.
+- The default in-memory store resets on restart and isn't shared across instances. For multiple instances, use a Redis store such as `rate-limit-redis`.
+- An IP limit alone doesn't stop a distributed attack against one account. A per-username limit or lockout would help there.
 
-Tangents (not done): hash passwords with bcrypt or argon2 if you aren't already, and use the same response and timing for "unknown user" and "wrong password".
+Set aside: per-account lockout, CAPTCHA, and password-hashing or other auth hardening. I didn't touch any of these.

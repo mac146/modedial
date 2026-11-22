@@ -1,25 +1,16 @@
-**Review: this diff should not merge.**
+Goal: Review the PR diff that replaces the `reduce` total with a loop, adds a discount, and writes the total to the DB.
 
-1. **Off-by-one crash (bug).** `i <= items.length` reads `items[items.length]`, which is `undefined`. `.price` then throws a `TypeError` on every call. Use `i < items.length`, or keep the original `reduce`, which was correct and simpler.
+**Blocking issues**
 
-2. **SQL injection.** `"... total = " + total + " WHERE id = " + orderId` builds the query by string concatenation. `orderId` is the real risk if it comes from user input. Use parameters, for example `db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId])`. The placeholder syntax depends on your driver.
+1. **Off-by-one crash.** `i <= items.length` reads `items[items.length]`, which is `undefined`. `.price` then throws a `TypeError` on every call. Use `i < items.length`, or keep the original `reduce`.
+2. **SQL injection.** The query is built by string concatenation with `orderId`. If `orderId` comes from user input, an attacker can run arbitrary SQL. Use a parameterized query instead, for example `db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId])`. The placeholder syntax depends on your driver.
 
-3. **Discount logic.**
-   - The 10% discount is a new behavior hidden in a refactor. Confirm it's intended and put it in its own PR, with the threshold and rate as named constants.
-   - `total * 0.9` with floating-point prices can leave values like `89.99999999`. Round, or better, work in integer cents.
-   - The `> 100` threshold is applied before any tax or shipping. Confirm that matches the business rule.
+**Should fix**
 
-4. **Smaller points.**
-   - Replacing `reduce` with a manual loop adds no value.
-   - Nothing validates `price` or `qty`, so negative or `NaN` values pass straight into the DB.
-   - The `db.query` result and errors aren't handled or awaited.
-   - There are no tests for the empty cart, the discount boundary at exactly 100, or the injection case.
+3. **Discount with a magic number.** `100` and `0.9` are unexplained, so name them as constants. `total * 0.9` also produces floating-point noise such as `89.99999999`. Round to cents or compute in integer cents. Confirm whether the discount should apply before or after tax and shipping.
+4. **Needless rewrite.** The original `reduce` was correct and shorter. The loop adds nothing except the bug.
+5. **Edge cases.** There is no handling for empty or null `items`, a negative `qty`, or a missing `price`. There are also no tests. Add tests for the empty cart, the exactly-100 boundary, and the discounted case.
 
-**Suggested shape:**
-```js
-const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
-const total = subtotal > DISCOUNT_THRESHOLD ? subtotal * (1 - DISCOUNT_RATE) : subtotal;
-await db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId]);
-```
+**Verdict:** Request changes. Items 1 and 2 must be fixed before merge.
 
-**Tangents, not pursued:** none, because the diff has no surrounding code to comment on.
+Set aside: nothing

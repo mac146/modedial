@@ -1,0 +1,14 @@
+**Bug:** `start + size - 1` makes the slice end one index early. `slice`'s end is exclusive, so each page returns `size - 1` items.
+
+**Fix:**
+
+```js
+function paginate(items, page, size) {
+  const start = page * size;
+  return items.slice(start, start + size);
+}
+```
+
+Pages are 0-indexed here. If callers pass 1-indexed pages, use `(page - 1) * size`. I can't see the callers, so check that too.
+
+**Tangent, not touched:** `fmt` works, but `x.getMonth()+1 + "/"` relies on operator precedence. It also uses `var`, and it gives non-zero-padded, local-timezone output.

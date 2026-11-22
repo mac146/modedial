@@ -23,3 +23,12 @@ Files are `<mode>__<task>.txt`; `none__*` is the no-mode baseline.
 - Claude was told to call `set_mode` explicitly in these prompts. In real use the agent needs the CLAUDE.md snippet or a user request to do that.
 - Deep Focus and Chill Refactor are the weakest candidates for "visible difference" and may need sharper instructions.
 - We did not judge correctness or quality, only style differences.
+
+## Round 2: added screenshot-able "tells" (Deep Focus, Chill Refactor)
+
+We sharpened both instructions (still well under 150 tokens: about 75 and 84 by a rough 4-chars-per-token estimate) and re-ran only those two modes on the same 3 tasks, one run each. The earlier outputs are kept in `previous/`.
+
+- **Deep Focus:** the reply opened with `Goal: ...` and closed with `Set aside: ...` in 3 of 3 runs. On the code review task it wrote `Set aside: nothing`.
+- **Chill Refactor:** the reply ended with `Changed / left alone:` and both lines in 3 of 3 runs. On tasks 2 and 3, which are not refactors, it said so and reported "Changed: nothing".
+
+Same caveats as above: one run per cell, non-deterministic, and this shows only that the format appeared, not that the work was better. In real use the tell depends on the agent following the instructions, and it may be dropped in a long session.

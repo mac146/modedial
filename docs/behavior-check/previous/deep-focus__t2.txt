@@ -1,0 +1,32 @@
+Deep Focus is on. Here's the rate limiter for `POST /login`, using `express-rate-limit`. I couldn't see your `app.js`, so I wrote this against what you described.
+
+Install:
+```
+npm install express-rate-limit
+```
+
+Add it to `app.js`:
+```js
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,     // 15-minute window
+  limit: 5,                     // 5 attempts per IP per window
+  standardHeaders: 'draft-7',   // send RateLimit-* headers
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // only failed logins count toward the limit
+  message: { error: 'Too many login attempts. Try again later.' },
+});
+
+app.post('/login', loginLimiter, (req, res) => {
+  // existing handler
+});
+```
+
+- **Placement:** The limiter goes on the route, not in `app.use`, so only `/login` is limited.
+- **Success handling:** `skipSuccessfulRequests: true` means legitimate users who log in correctly aren't locked out. This only works if your handler returns a 4xx status on a failed login. If it returns 200 with an error body, remove that option.
+- **Proxy:** If the app runs behind a proxy or load balancer (nginx, Heroku, etc.), add `app.set('trust proxy', 1)` before the route. Without it, every client appears to share the proxy's IP and gets limited together.
+- **Multiple instances:** The default store is in memory and per process. If you run several instances, use a shared store such as `rate-limit-redis`.
+- **Distributed guessing:** An IP limit doesn't stop an attacker who spreads guesses across many IPs against one account. For that, add a per-username limiter with `keyGenerator: (req) => req.body.username`, or lock the account temporarily after repeated failures.
+
+Tangents (not done): hash passwords with bcrypt or argon2 if you aren't already, and use the same response and timing for "unknown user" and "wrong password".

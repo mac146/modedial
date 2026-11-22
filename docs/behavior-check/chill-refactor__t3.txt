@@ -1,18 +1,20 @@
-This diff isn't a behavior-preserving refactor, and it has real bugs.
+This diff isn't a refactor. It changes behavior and adds bugs.
 
-**Blocking**
-1. **Off-by-one crash:** `i <= items.length` reads `items[items.length]`, which is `undefined`. That throws a `TypeError` on every call. Use `<` or `for...of`.
-2. **SQL injection:** the query is built by string concatenation with `orderId` (and `total`). Use a parameterized query, e.g. `db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId])`. Use the placeholder style your driver expects.
+**Bugs**
+1. **Off-by-one:** `i <= items.length` reads `items[items.length]`, which is `undefined`, so it throws a `TypeError` on every call.
+2. **SQL injection:** building the query by string concatenation is unsafe. Use a parameterized query: `db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId])`. The placeholder syntax depends on your driver.
+3. **New behavior:** the 10% discount over 100 is a feature, not a tidy-up. It also uses a magic number and applies no rounding. If it's wanted, it belongs in a separate PR with tests.
+4. **Regression in readability:** the original `reduce` was already correct and concise. The loop adds mutation and the bug above for no gain.
 
-**Scope problems**
-3. **Unrequested discount:** `if (total > 100) total *= 0.9` is a new feature, not a tidy-up. It needs its own PR, a spec, and tests. Floating-point money math should also be rounded or done in cents.
-4. **Unrequested DB write:** the `UPDATE` adds a side effect to what was a pure calculation. Keep the calculation separate from persistence.
-5. **Worse loop:** the original `reduce` was already clear. The hand-rolled loop adds the bug and no benefit.
-
-**Suggested shape**
+**Suggested tidy version (behavior-preserving)**
 ```js
 const total = items.reduce((sum, { price, qty }) => sum + price * qty, 0);
+db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId]);
 ```
-Keep the original line, which already does what's needed. If the discount and DB update are wanted, add them in a separate, tested change with a parameterized query.
+Keep the discount out unless it's intended. If it is, add it separately with a named constant.
 
-**Tests:** I see none in this diff. Before touching this area, add tests for an empty cart, a single item, and the 100 boundary if the discount stays.
+I can't see the surrounding code, so I don't know whether tests cover this path. The money math and the DB write look like a risky area without them.
+
+Changed / left alone:
+- **Changed:** nothing applied, since this is a text-only review. I proposed reverting to `reduce` and parameterizing the query.
+- **Left alone:** the discount logic, pending a decision on whether it's intended.

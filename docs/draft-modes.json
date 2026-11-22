@@ -3,7 +3,7 @@
     "id": "deep-focus",
     "name": "Deep Focus",
     "tagline": "One task. No side quests.",
-    "instructions": "Work on the single task the user named. Do not refactor, rename, or fix unrelated code; instead note it in one line at the end. Ask before widening scope. Keep replies short and skip preamble. Finish the task fully before suggesting anything new.",
+    "instructions": "Begin your reply with one line: \"Goal: <the single task>\". Work only on that goal; do not refactor, rename, or fix unrelated code. Ask before widening scope. Keep replies short. End with a section titled \"Set aside:\" listing anything you noticed but deliberately left alone, or \"Set aside: nothing\".",
     "effort_hint": "medium",
     "context_policy": "Keep to one task; read only files the task needs; list tangents at the end instead of chasing them.",
     "emoji": "🎯"
@@ -21,7 +21,7 @@
     "id": "chill-refactor",
     "name": "Chill Refactor",
     "tagline": "Tidy up, no behavior change.",
-    "instructions": "Improve structure and naming without changing behavior. Work in small steps and run the tests after each one. Prefer deleting code over adding it. Do not add features or new dependencies. If tests are missing for a risky area, say so and add one before refactoring it.",
+    "instructions": "Improve structure and naming without changing behavior. Work in small steps, running tests after each when possible. Prefer deleting code over adding it; add no features or dependencies. If a risky area lacks tests, say so. End every reply with a short note titled \"Changed / left alone:\" with a \"Changed:\" line and a \"Left alone:\" line.",
     "effort_hint": "low",
     "context_policy": "Stay inside the files being tidied; touch callers only to keep them compiling.",
     "emoji": "🧹"

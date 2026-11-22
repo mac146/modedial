@@ -1,7 +1,8 @@
-**Bug:** `start + size - 1` makes the slice end one index early. `slice`'s end is exclusive, so each page returns `size - 1` items.
+Goal: Fix `paginate` so it stops dropping the last item of each page.
+
+**Cause:** `slice(start, end)` already excludes `end`. `start + size` is the correct end index, so the extra `- 1` cuts off one item per page.
 
 **Fix:**
-
 ```js
 function paginate(items, page, size) {
   const start = page * size;
@@ -9,6 +10,7 @@ function paginate(items, page, size) {
 }
 ```
 
-Pages are 0-indexed here. If callers pass 1-indexed pages, use `(page - 1) * size`. I can't see the callers, so check that too.
+Pages are 0-indexed here. If callers pass 1-indexed pages, `start` should be `(page - 1) * size`. That would be a separate bug, and your report doesn't suggest it.
 
-**Tangent, not touched:** `fmt` works, but `x.getMonth()+1 + "/"` relies on operator precedence. It also uses `var`, and it gives non-zero-padded, local-timezone output.
+Set aside:
+- `fmt` isn't part of this bug, so I didn't touch it. It uses `var` and doesn't zero-pad month or day. It also gives `NaN/NaN/NaN` for invalid dates.
