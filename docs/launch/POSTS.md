@@ -8,7 +8,7 @@ Facts every post may rely on (all verified in this repo):
 - MCP server, 5 tools, 6 bundled modes. Modes are static and never fetched from the network.
 - No telemetry. The local log holds only a mode id, a timestamp and a random session id.
 - Cards and recaps are drawn locally and nothing is uploaded unless you post the image.
-- Tested with Claude Code only. Cursor and Codex configs are provided but untested.
+- Tested with Claude Code, Codex CLI and opencode (one smoke test each). Cursor config is provided but untested.
 - No benchmark. A small observational check (1 run per mode per task, 3 tasks) showed each mode changes the reply's style.
 
 ---
@@ -42,7 +42,7 @@ Mine says "The Methodical Tinkerer". Rude but fair.
 Fine print, because I like you:
 - A tool can't force an agent. It hands over instructions; the agent follows them.
 - I haven't benchmarked whether modes make results better. This is a toy until someone proves otherwise.
-- Tested on Claude Code. Cursor/Codex configs are in the README, untested.
+- Tested on Claude Code, Codex CLI and opencode. Cursor config is in the README, untested.
 - No telemetry. No accounts. Nothing leaves your machine unless you post the card.
 
 `claude mcp add modedial -- npx -y modedial`
@@ -68,12 +68,12 @@ Every switch also prints a card, and there's a recap image built from your own l
 Straight talk:
 - An MCP tool can't force an agent. It's a nudge, and a CLAUDE.md snippet makes it stick better.
 - I have NOT benchmarked whether modes improve anything. I only checked that each mode changes how the reply looks. So: for fun, not proof.
-- Tested with Claude Code only. Cursor and Codex configs are in the README but untested.
+- Tested with Claude Code, Codex CLI and opencode. The Cursor config is in the README but untested.
 - No telemetry, no network calls. Modes are bundled and never fetched.
 
 MIT licensed. `claude mcp add modedial -- npx -y modedial`. Repo: <REPO_URL>
 
-Which mode should I add? Which one is dumb? If you try it in Cursor or Codex, tell me if it explodes.
+Which mode should I add? Which one is dumb? If you try it in Cursor, tell me if it explodes.
 
 (Built with help from Claude Code.)
 
@@ -96,7 +96,7 @@ Each mode asks the agent for a recognizable tell (Debug states a hypothesis and 
 What it is not:
 - It can't force behavior. It returns text; the agent decides.
 - It has no benchmark behind it. I ran a small observational check (one run per mode on three tasks) and saw the style change. That is not evidence of better results. A real test would need fixed tasks, objective checks, repeated runs and several models.
-- Only Claude Code is tested. Cursor and Codex configs are in the README, untested.
+- Tested with Claude Code, Codex CLI and opencode (one smoke test each). The Cursor config is in the README, untested.
 
 No telemetry, no network calls, a log that stores a mode id and a timestamp. MIT: <REPO_URL>
 

@@ -236,13 +236,13 @@ footer { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; justify-content: spa
     <div class="hero-grid">
       <div>
         <p class="eyebrow">Modes for coding agents · MCP</p>
-        <h1>Pick a <em>mode</em> for your agent.</h1>
-        <p class="lede">Say “debug mode” and your agent gets a short set of instructions to follow. Six modes, one call. Tested with Claude Code, with setup for Cursor, Codex and other MCP clients.</p>
+        <h1>Dial in your <em>agent</em>.</h1>
+        <p class="lede">Say “debug mode” and your agent gets a tiny rulebook for the job. Six modes, one call, a printed label for every switch. Tested with Claude Code, Codex CLI and opencode.</p>
         <div class="cmd">
           <div class="cmdrow"><code><b>$ </b>claude mcp add modedial -- npx -y modedial</code><button class="copy" data-copy="claude mcp add modedial -- npx -y modedial">Copy</button></div>
           <button class="ghost" data-copy="Add the modedial MCP server (npx -y modedial). When I ask for a mode such as deep focus or debug mode, call list_modes if unsure, then set_mode, and follow the returned instructions until end_mode or I pick another.">Copy a setup prompt for your agent</button>
         </div>
-        <p class="fine">A mode is a nudge, not a lock. The tool returns instructions and the agent chooses to follow them. No telemetry, no network calls, no account.</p>
+        <p class="fine">A mode is a nudge, not a lock: the tool hands over instructions and the agent decides. No telemetry, no network calls, no account.</p>
         <p class="tip"><span>Try the printer:</span><span><kbd>1</kbd>–<kbd>6</kbd> press a key</span></p>
       </div>
 
@@ -269,7 +269,7 @@ footer { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; justify-content: spa
   <section id="modes">
     <p class="eyebrow">The six modes</p>
     <h2>Each mode has a visible tell.</h2>
-    <p class="lede" style="margin-top:1rem">The instructions stay under 150 tokens, and each one asks the agent to show its working in a recognizable way, so you can tell which mode is on. Peel, drag and pick a sticker.</p>
+    <p class="lede" style="margin-top:1rem">Each mode asks the agent to show its work in a recognizable way, so you can see which one is on, and screenshot it. Instructions stay under 150 tokens. Peel, drag, pick a sticker.</p>
     <div class="picker">
       <div>
         <div class="sheet" id="sheet" role="listbox" aria-label="Modes"></div>
@@ -329,7 +329,7 @@ footer { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; justify-content: spa
 
   <section>
     <p class="eyebrow">Plainly</p>
-    <h2>What it is, and what it isn’t.</h2>
+    <h2>Fine print, because we like you.</h2>
     <div class="two">
       <div><h3>What you get</h3><ul><li>Six bundled modes, each under 150 tokens.</li><li>A card on every switch, and a recap from your own log.</li><li>Open source, MIT licensed.</li></ul></div>
       <div><h3>What we don’t claim</h3><ul><li>That modes improve results. We haven’t measured that.</li><li>That agents feel anything. These are instructions, not moods.</li><li>That an MCP tool can force behavior. It can’t.</li></ul></div>
@@ -339,7 +339,7 @@ footer { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; justify-content: spa
   <section style="padding-top:0">
     <div class="close">
       <span class="tape">Ready</span>
-      <h2>Give your agent a mode.</h2>
+      <h2>Go on. Dial it in.</h2>
       <div class="cmdrow"><code><b>$ </b>claude mcp add modedial -- npx -y modedial</code><button class="copy" data-copy="claude mcp add modedial -- npx -y modedial">Copy</button></div>
     </div>
     <footer><span>modedial · MIT · built by mac146</span><span>Modes are bundled and never fetched from the network.</span></footer>
@@ -485,8 +485,9 @@ $("#proj").addEventListener("input", card); card();
 /* install */
 const INSTALL = [
   { k:"Claude Code", code:"claude mcp add modedial -- npx -y modedial", note:"Tested by us." },
-  { k:"Cursor", code:'{\n  "mcpServers": {\n    "modedial": { "command": "npx", "args": ["-y", "modedial"] }\n  }\n}', note:"Add to .cursor/mcp.json. Untested by us." },
-  { k:"Codex CLI", code:'[mcp_servers.modedial]\ncommand = "npx"\nargs = ["-y", "modedial"]', note:"Add to ~/.codex/config.toml. Untested by us." },
+  { k:"Cursor", code:'{\n  "mcpServers": {\n    "modedial": { "command": "npx", "args": ["-y", "modedial"] }\n  }\n}', note:"Add to .cursor/mcp.json. Not yet tested by us, so tell us if it breaks." },
+  { k:"Codex CLI", code:'[mcp_servers.modedial]\ncommand = "npx"\nargs = ["-y", "modedial"]\n# optional: skip the approval prompt for this server\ndefault_tools_approval_mode = "approve"', note:"Add to ~/.codex/config.toml. Tested by us. Codex asks before running tools unless you set the approval line." },
+  { k:"opencode", code:'{\n  "mcp": {\n    "modedial": { "type": "local", "command": ["npx", "-y", "modedial"] }\n  }\n}', note:"Add to opencode.json. Tested by us." },
   { k:"Other", code:"npx -y modedial", note:"Run it as a stdio MCP server. On Windows some clients need: cmd /c npx -y modedial." }
 ];
 const tabs = $("#itabs"); let icur = INSTALL[0].code;

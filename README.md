@@ -2,7 +2,7 @@
 
 Named **modes** for coding agents, as a tiny MCP server. Switch your agent between things like *Deep Focus*, *Debug Mode* or *Fast Prototype* with one call, and get a shareable card and a local recap.
 
-> Status: pre-release, not yet on npm. Tested with Claude Code only.
+> Status: pre-release, not yet on npm. Smoke-tested with Claude Code, Codex CLI and opencode ([details](docs/agent-tests/README.md)). Cursor is untested.
 
 <!-- TODO: add the demo GIF/MP4 here after recording (see docs/launch/DEMO_SCRIPT.md) -->
 
@@ -37,11 +37,17 @@ claude mcp add modedial -- npx -y modedial
 { "mcpServers": { "modedial": { "command": "npx", "args": ["-y", "modedial"] } } }
 ```
 
-**Codex CLI**: add to `~/.codex/config.toml`. *Untested by us.*
+**Codex CLI**: add to `~/.codex/config.toml`. *Tested by us.* Codex asks before running a tool; the optional last line skips that prompt for this server.
 ```toml
 [mcp_servers.modedial]
 command = "npx"
 args = ["-y", "modedial"]
+default_tools_approval_mode = "approve"
+```
+
+**opencode**: add to `opencode.json`. *Tested by us.*
+```json
+{ "mcp": { "modedial": { "type": "local", "command": ["npx", "-y", "modedial"] } } }
 ```
 
 **Any other MCP client**: run `npx -y modedial` as a stdio server. On Windows, some clients need `cmd /c npx -y modedial`.

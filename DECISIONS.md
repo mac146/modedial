@@ -51,3 +51,10 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 - **Posts:** `docs/launch/POSTS.md` has drafts for X, Reddit and Hacker News. They state the limits (cannot force behavior, no benchmark, Claude Code tested only) and disclose that it was built with Claude Code. Nothing is published.
 - **Measurement:** `LAUNCH_LOG.md` now defines how installs and shares are counted and where the numbers overstate (npm counts include bots, CI and repeated `npx` runs). There is no telemetry, so no active-user figure.
 - **Pre-launch checklist:** `docs/launch/CHECKLIST.md`, including the commit-email question and every step that needs the founder's accounts.
+
+## 2026-11-22 · Agent tests and launch tone
+- **Tone:** founder chose "punch": the posts and the site copy are now playful and fast ("Dial in your agent.", "Fine print, because we like you."). Guardrails unchanged: no claims that modes improve results, no claims that agents feel anything, wholesome only.
+- **Agent smoke tests** (`docs/agent-tests/README.md`): Claude Code, Codex CLI 0.171 and opencode 1.19.6 all passed. Pass meant the agent called `set_mode`, the server's own log recorded it, and a card PNG was written. Cursor is untested because it is a GUI app with no headless mode; manual steps are in that file.
+- **Codex quirk:** non-interactive `codex exec` blocks MCP tool calls without approval. `default_tools_approval_mode = "approve"` on the server entry fixes it; interactive Codex just asks. Documented in the README and on the site.
+- **Environment issues found while testing** (not modedial bugs): opencode 1.14.39 can't use the free tier (needs 1.18+), and the founder's default Codex model (gpt-5.4) is unsupported on a ChatGPT account, so a supported model was passed with `-m`. We did not change either tool's configuration.
+- **Claims updated everywhere** (site, README, posts) from "Claude Code only" to "Claude Code, Codex CLI and opencode, one smoke test each; Cursor untested".
