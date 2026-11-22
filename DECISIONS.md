@@ -11,3 +11,17 @@ Running log of what we chose and why. Newest at the bottom.
 
 ## 2026-11-22 · Name availability method
 Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (RDAP). RDAP rate-limits (HTTP 429), so domain results for some names are unverified. A registrar check is needed before buying anything.
+
+## 2026-11-22 · Founder approvals and handles
+- **Name: `modedial`** (founder said "go ahead" on the recommendation). npm free, no GitHub conflicts. `.com` is taken; `.dev`, `.app`, `.ai` and `.io` were free on RDAP. Confirm with a registrar before buying.
+- **Six modes approved** as drafted (instructions may be sharpened after the behavior check).
+- **Handles:** GitHub `mac146` (from the IssueWatcher repo URL). npm package will be published unscoped, as `issue-watcher` is. The npm username was not recorded in that project, so `npm login` happens at publish time.
+- **Design:** the founder is not satisfied with the Phase 1 sketches. Visual design (card, recap, landing page) is on hold until a design pass together. Phase 2 ships no visuals.
+
+## 2026-11-22 · Phase 2 implementation choices
+- **Zero extra runtime deps:** only `@modelcontextprotocol/sdk` and `zod`. The data directory logic is about ten lines in `src/paths.ts`, so `env-paths` is not needed.
+- **Current mode is held in memory per server process.** Each agent session starts its own stdio server, so there is no cross-session state to leak. The log carries a random per-process session id, which is what lets the recap measure how long a mode ran.
+- **Recap "longest streak"** is defined as the longest time spent in one mode before the next event in the same session, capped at 4 hours (a mode left on with no later event can't count forever).
+- **Logging never throws.** A broken disk must not break a tool call.
+- **Log rotation:** at 1 MB the log moves to `log.1.jsonl`, and only one old file is kept.
+- **Pinned toolchain** to widely used versions (TypeScript 5.9, Vitest 3) instead of the newest majors.

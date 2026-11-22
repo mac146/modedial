@@ -1,0 +1,25 @@
+**Review: this diff should not merge.**
+
+1. **Off-by-one crash (bug).** `i <= items.length` reads `items[items.length]`, which is `undefined`. `.price` then throws a `TypeError` on every call. Use `i < items.length`, or keep the original `reduce`, which was correct and simpler.
+
+2. **SQL injection.** `"... total = " + total + " WHERE id = " + orderId` builds the query by string concatenation. `orderId` is the real risk if it comes from user input. Use parameters, for example `db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId])`. The placeholder syntax depends on your driver.
+
+3. **Discount logic.**
+   - The 10% discount is a new behavior hidden in a refactor. Confirm it's intended and put it in its own PR, with the threshold and rate as named constants.
+   - `total * 0.9` with floating-point prices can leave values like `89.99999999`. Round, or better, work in integer cents.
+   - The `> 100` threshold is applied before any tax or shipping. Confirm that matches the business rule.
+
+4. **Smaller points.**
+   - Replacing `reduce` with a manual loop adds no value.
+   - Nothing validates `price` or `qty`, so negative or `NaN` values pass straight into the DB.
+   - The `db.query` result and errors aren't handled or awaited.
+   - There are no tests for the empty cart, the discount boundary at exactly 100, or the injection case.
+
+**Suggested shape:**
+```js
+const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+const total = subtotal > DISCOUNT_THRESHOLD ? subtotal * (1 - DISCOUNT_RATE) : subtotal;
+await db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId]);
+```
+
+**Tangents, not pursued:** none, because the diff has no surrounding code to comment on.

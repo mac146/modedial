@@ -1,0 +1,30 @@
+I can't see your app.js, so here's a drop-in addition using `express-rate-limit`. Install it with `npm i express-rate-limit`.
+
+```js
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,      // 15-minute window
+  limit: 5,                      // 5 attempts per window per key
+  standardHeaders: 'draft-7',    // send RateLimit-* headers
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,  // only failed logins count
+  message: { error: 'Too many login attempts. Try again later.' },
+});
+
+app.post('/login', loginLimiter, (req, res) => {
+  // existing handler unchanged
+});
+```
+
+Put the `loginLimiter` between the path and your existing handler. Nothing else changes.
+
+Things to check:
+
+- **Counting successful logins:** `skipSuccessfulRequests: true` only counts responses with a status below 400. Make sure your handler returns 401 (not 200) on a bad password. Otherwise every attempt counts as a success and nothing is limited.
+- **Behind a proxy:** if the app runs behind nginx, a load balancer or a PaaS, set `app.set('trust proxy', 1)` (match your hop count). Without it, every user shares the proxy's IP and gets rate-limited together. Setting it too loosely lets attackers spoof `X-Forwarded-For` and bypass the limit.
+- **Per-account limiting:** per-IP limits don't stop a distributed attack on one account. Add a second limiter keyed on the submitted username, for example `keyGenerator: (req) => String(req.body?.username ?? '').toLowerCase()`. This works because `express.json()` runs first. Be aware that it lets someone lock a victim out. Lockouts are better handled as a temporary delay than a hard block.
+- **Multiple instances:** the default store is in-memory, so each process counts separately and counts reset on restart. For more than one instance, use a shared store such as `rate-limit-redis`.
+- **Other protections:** a rate limiter slows guessing but doesn't replace strong password hashing (bcrypt or argon2), uniform error messages, and logging of repeated failures.
+
+If you paste app.js, I can fit this to your exact handler and status codes.

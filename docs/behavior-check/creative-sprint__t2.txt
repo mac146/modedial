@@ -1,0 +1,51 @@
+**Three approaches**
+
+1. **Per-IP fixed window (conventional):** `express-rate-limit` on `POST /login`, 5 attempts per 15 minutes per IP. It's about 5 lines, but attackers who rotate IPs get around it, and users behind a shared NAT get locked out together.
+2. **Per-account + per-IP with progressive delay:** key on `ip + username`, so guessing one account is throttled however many IPs are used. Each failure doubles the wait, and a success resets the counter. This is `rate-limiter-flexible` territory.
+3. **Unconventional, a tarpit:** don't reject guesses, slow them. Each failed attempt for a username makes the next response wait 2^n × 100 ms, capped at about 10 s. Bots burn their own time and sockets, while a real user with a typo barely notices. The attacker also can't tell a throttled response from a slow server.
+
+**Recommendation:** a hybrid of 2 and 3. Use a hard per-IP cap as a backstop and a per-username tarpit as the main defence. The tarpit still protects an account when the guesses come from a botnet, and it avoids the lockout problem. Anyone can lock a victim out of their own account just by hammering it.
+
+**Rough version** (`npm i rate-limiter-flexible`):
+
+```js
+const { RateLimiterMemory } = require('rate-limiter-flexible');
+
+// Backstop: 20 login requests / 15 min per IP
+const ipLimiter = new RateLimiterMemory({ points: 20, duration: 15 * 60 });
+// Tarpit counter: failures per username, forgotten after 1 hour
+const failLimiter = new RateLimiterMemory({ points: 1e9, duration: 3600 });
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+async function loginThrottle(req, res, next) {
+  try {
+    await ipLimiter.consume(req.ip);
+  } catch {
+    return res.status(429).set('Retry-After', 900).json({ error: 'Too many requests' });
+  }
+  const user = String(req.body?.username ?? '').toLowerCase();
+  const rec = await failLimiter.get(user);
+  const fails = rec ? rec.consumedPoints : 0;
+  await sleep(Math.min(100 * 2 ** fails, 10000) * (fails ? 1 : 0)); // tarpit
+
+  // after the handler finishes: count failures, clear on success
+  res.on('finish', () => {
+    if (res.statusCode === 401) failLimiter.consume(user).catch(() => {});
+    else if (res.statusCode < 400) failLimiter.delete(user).catch(() => {});
+  });
+  next();
+}
+
+app.set('trust proxy', 1); // only if behind a reverse proxy; otherwise req.ip is the proxy's IP
+app.post('/login', loginThrottle, loginHandler);
+```
+
+I haven't seen your `app.js`, so wire `loginThrottle` in before your existing `/login` handler. It needs to run after `express.json()` so `req.body` is parsed. The handler must return 401 on bad credentials.
+
+**Risks to handle later:**
+- **Memory store:** state is in-process, so it resets on restart and isn't shared across instances. Switch to `RateLimiterRedis` for multiple instances.
+- **Held connections:** the tarpit keeps sockets open for up to 10 s, so an attacker can tie up connections. The IP cap limits this, and you could add a global cap on concurrent delayed requests.
+- **Username spoofing:** unbounded unique usernames grow the memory store. Cap the key length and rely on the IP limiter to bound new keys.
+- **Proxy setup:** `trust proxy` must match your real deployment, or the per-IP limit keys on the wrong address.
+- **Next steps:** add tests and a CAPTCHA or MFA fallback after repeated failures.

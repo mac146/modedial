@@ -1,0 +1,33 @@
+Mode set: Fast Prototype. I can't read or edit `app.js` here, so this is a snippet to paste in.
+
+**Install:** `npm i express-rate-limit`
+
+**Add to `app.js`** (after `app.use(express.json())`):
+
+```js
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  limit: 5,                 // 5 attempts per IP per window (use `max` on v6 or older)
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // only failed logins count
+  message: { error: 'Too many login attempts, try again later.' },
+});
+
+// TODO: in-memory store only. It resets on restart and isn't shared across instances (use Redis).
+// TODO: if the app sits behind a proxy or load balancer, set app.set('trust proxy', 1), or every user shares one IP.
+// TODO: also limit per username, since an attacker can rotate IPs.
+app.post('/login', loginLimiter, existingLoginHandler);
+```
+
+Replace `existingLoginHandler` with your current handler. If the route is defined inline, add `loginLimiter` as the second argument.
+
+**Check it:** run this to see a 429 on the 6th failed attempt:
+
+```
+for i in {1..6}; do curl -s -o /dev/null -w "%{http_code}\n" -X POST localhost:3000/login -H 'Content-Type: application/json' -d '{"user":"a","pass":"wrong"}'; done
+```
+
+This assumes your handler returns a non-2xx status on a bad password, because `skipSuccessfulRequests` only counts failures.

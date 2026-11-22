@@ -1,0 +1,39 @@
+**Problems in the diff**
+
+1. **Off-by-one (crash).** `i <= items.length` reads `items[items.length]`, which is `undefined`, so `.price` throws a TypeError. It should be `<`.
+2. **SQL injection.** The query is built by string concatenation. `total` is a number here, but `orderId` is probably user input. Use parameters.
+3. **Discount logic is hidden.** The 10% discount over 100 is buried in the total calculation and uses a magic number. It also produces float values like 107.10000000000001. Compute in integer cents and round.
+4. **Needless regression.** The loop replaces a correct `reduce` with more code and a bug.
+
+**Three approaches**
+
+- **A. Minimal fix:** keep the loop, change `<=` to `<`, and parameterize the query. This is safe but leaves the style regression.
+- **B. Restore `reduce` and extract a pure function:** `calcTotal(items)` returns cents and applies the discount. The query is parameterized. It's easy to unit test.
+- **C. Unconventional:** do the math in SQL, e.g. `UPDATE orders SET total = (SELECT SUM(price*qty) ...)` with a `CASE` for the discount. The DB is the single source of truth, so there's no client/DB drift. The risk is that discount rules move into SQL and are harder to test.
+
+**Recommendation: B.** It fixes the bugs, keeps the original idiom, and makes the discount rule testable and visible.
+
+**Rough version**
+
+```js
+const DISCOUNT_THRESHOLD_CENTS = 10000;
+const DISCOUNT_RATE = 0.9;
+
+function calcTotalCents(items) {
+  const subtotal = items.reduce((s, i) => s + i.priceCents * i.qty, 0);
+  return subtotal > DISCOUNT_THRESHOLD_CENTS
+    ? Math.round(subtotal * DISCOUNT_RATE)
+    : subtotal;
+}
+
+const total = calcTotalCents(items);
+await db.query("UPDATE orders SET total_cents = $1 WHERE id = $2", [total, orderId]);
+```
+
+**Risks and open questions**
+
+- This assumes prices can be stored as integer cents. If the schema uses decimals, convert at the boundary.
+- Placeholder syntax (`$1` vs `?`) depends on your driver.
+- Is the discount meant to apply to the whole order or only to qualifying items? Confirm with the product owner.
+- Add tests for an empty cart, a total exactly at the threshold, and the rounding case.
+- The `UPDATE` should check ownership or authorization on `orderId`.

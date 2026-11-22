@@ -1,0 +1,37 @@
+I haven't seen `app.js`, so this is a proposed change plus the things to check, not a verified review.
+
+**Proposed change** (using `express-rate-limit`):
+
+```js
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,                    // `max` in v6 and older
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // only failed attempts count
+  message: { error: 'Too many login attempts. Try again later.' },
+});
+
+app.post('/login', loginLimiter, loginHandler);
+```
+
+Put the limiter on the route, not globally with `app.use`. It also runs after `express.json()`, so it won't affect parsing.
+
+**Must-fix before relying on it**
+1. **Client IP behind a proxy.** If the app sits behind a load balancer or reverse proxy, every request looks like it comes from the proxy's IP. All users then share one bucket, and the limiter locks everyone out or does nothing useful. Set `app.set('trust proxy', <exact hop count>)`. Don't use `true`: a client could then spoof `X-Forwarded-For` and dodge the limit.
+2. **In-memory store.** The default store is per process. With multiple instances or PM2 cluster workers, the effective limit is multiplied by the instance count. A restart also resets it. Use a shared store such as `rate-limit-redis` in production.
+3. **Per-IP limiting alone doesn't stop distributed guessing.** An attacker with many IPs can try one account's password from all of them. Add a second limiter keyed on the submitted username (or IP plus username). Be aware that this lets someone deliberately lock out a victim. Mitigate that with progressive delays rather than hard lockouts.
+
+**Nice-to-have**
+- Add a slower, wider limiter, for example 100 attempts per day per IP, on top of the short window.
+- Return the same error for a wrong username and a wrong password, so login responses don't reveal which usernames exist.
+- With `skipSuccessfulRequests: true`, make sure the handler returns 4xx on failure. Otherwise failures are counted as successes and aren't limited. Also check whether the handler returns 200 for bad credentials.
+- Log 429 responses for monitoring.
+- Add a test that sends N+1 bad logins and expects 429, and that a successful login doesn't consume the budget.
+
+**What I didn't check**
+- The actual `app.js`: route order, the login handler's status codes, and whether a router or other middleware is mounted ahead of `/login`.
+- The deployment topology: proxy, number of instances, and the library version, since `max` and `limit` differ across major versions.
+- Whether any CAPTCHA or MFA already exists.

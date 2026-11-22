@@ -1,0 +1,37 @@
+Chill Refactor is active. It says no new features and no new dependencies. A rate limiter is a feature, so I'm treating your explicit request as the exception. I'm keeping to the spirit of the mode by adding no dependency and keeping the change small. I can't read or edit files in this exercise, so this is a snippet to paste into `app.js`.
+
+```js
+// Fixed-window limiter: max 5 attempts per IP per 15 minutes.
+const WINDOW_MS = 15 * 60 * 1000;
+const MAX_ATTEMPTS = 5;
+const attempts = new Map(); // ip -> { count, resetAt }
+
+function loginLimiter(req, res, next) {
+  const now = Date.now();
+  let entry = attempts.get(req.ip);
+  if (!entry || entry.resetAt <= now) {
+    entry = { count: 0, resetAt: now + WINDOW_MS };
+    attempts.set(req.ip, entry);
+  }
+  if (++entry.count > MAX_ATTEMPTS) {
+    res.set('Retry-After', Math.ceil((entry.resetAt - now) / 1000));
+    return res.status(429).json({ error: 'Too many login attempts. Try again later.' });
+  }
+  next();
+}
+
+// Drop expired entries so the map doesn't grow without bound.
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, e] of attempts) if (e.resetAt <= now) attempts.delete(ip);
+}, WINDOW_MS).unref();
+
+app.post('/login', loginLimiter, existingLoginHandler);
+```
+
+Just add `loginLimiter` before your existing handler in the route. The handler itself doesn't change.
+
+- **Behind a proxy:** set `app.set('trust proxy', 1)` or every client will share the proxy's IP. Only do this if you really are behind one.
+- **Multiple instances or restarts:** this limiter is in memory, so the count is per process and resets on restart. For a multi-instance deployment, use `express-rate-limit` with a Redis store. That adds a dependency, so I held off.
+- **Credential stuffing:** per-IP limits don't stop one attacker rotating IPs, or many attackers hitting one account. A per-username limit or backoff would help, if you want it.
+- **Tests:** there are none that I can see. Before merging, add one that sends 6 POSTs to `/login` and expects the 6th to return 429 with a `Retry-After` header. I can't run it in this text-only exercise.

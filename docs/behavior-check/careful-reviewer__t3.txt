@@ -1,0 +1,36 @@
+**Review of the diff.** I only had the snippet. I couldn't see the surrounding code, the file name or line numbers, so findings cite the diff lines.
+
+## Must-fix
+
+1. **Off-by-one in the loop: `i <= items.length`.**
+   On the last iteration `items[i]` is `undefined`, so `items[i].price` throws a `TypeError` on every call. It should be `i < items.length`.
+
+2. **SQL injection: `"UPDATE orders SET total = " + total + " WHERE id = " + orderId`.**
+   `orderId` is concatenated straight into the query. If it comes from a request or any user-controlled source, an attacker can inject SQL. For example, `1; DROP TABLE orders` or `1 OR 1=1` would overwrite every order's total. `total` is numeric here, but it is still built from `price` and `qty` values you haven't shown to be trusted. Use a parameterized query, for example `db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId])`. The placeholder syntax depends on your driver.
+
+3. **The query is never awaited or error-handled.**
+   If `db.query` is async or callback-based, a failed update is silently lost, and the caller may carry on as if it succeeded. I can't confirm this without the surrounding code.
+
+## Should-fix
+
+4. **The discount is a new business rule, and nothing in the diff says it was intended.**
+   It is a 10% discount over 100, applied with a magic number and no constant or config. `total > 100` is also ambiguous about whether the threshold is inclusive.
+
+5. **Floating-point money.**
+   `total * 0.9` and the sum of `price * qty` produce values like `89.99999999999999`, and that goes into the DB. Use integer cents, or round explicitly, for example `Math.round(total * 100) / 100`. Better still, use a decimal type.
+
+6. **Input validation is missing.**
+   Nothing checks for negative or non-numeric `price` or `qty`, `NaN` values, or an empty or null `items` array. An empty array would write a total of 0.
+
+## Nice-to-have
+
+7. **Unnecessary rewrite.**
+   The original `reduce` was correct and concise. The `for` loop adds no benefit and is where bug #1 came from. Keep the `reduce`, or use `for...of`, which cannot go out of bounds.
+
+## Not checked
+- The callers, and where `orderId` and `items` come from.
+- Whether `db.query` is sync or async, and which driver it is.
+- Whether the discount duplicates logic elsewhere, such as at checkout.
+- Whether any tests exist for this code. None are in the diff, and I'd expect at least tests for an empty cart, the discount threshold and a hostile `orderId`.
+
+**Verdict: don't merge.** Items 1 and 2 are blocking: one is a guaranteed crash, the other a security hole.

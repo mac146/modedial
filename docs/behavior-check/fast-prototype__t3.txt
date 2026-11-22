@@ -1,0 +1,19 @@
+Fast Prototype mode is on. Here is the review. This diff shouldn't merge as written.
+
+**Blockers**
+1. **Off-by-one crash:** `i <= items.length` reads `items[items.length]`, which is `undefined`. The next line throws `TypeError: Cannot read properties of undefined`. Use `i < items.length`.
+2. **SQL injection:** `"... SET total = " + total + " WHERE id = " + orderId` builds the query by string concatenation. `orderId` is probably user-controlled, so this is exploitable. Use a parameterized query, for example `db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId])`. Use `$1, $2` if you're on Postgres.
+
+**Should fix**
+3. **Floating-point money:** `total * 0.9` gives values like `89.99999999`. Round to cents with `Math.round(total * 90) / 100`, or better, compute in integer cents.
+4. **Undocumented business rule:** the 10% discount over 100 is hardcoded and mixed into a "total" change. Name the constants (`DISCOUNT_THRESHOLD`, `DISCOUNT_RATE`) and say whether the discount applies before or after tax and shipping. It also needs a test.
+5. **Pointless rewrite:** the original `reduce` was fine. The loop adds the bug and no benefit. Keep the `reduce` and add the discount after it.
+
+**Suggested version**
+```js
+const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+const total = subtotal > 100 ? Math.round(subtotal * 90) / 100 : subtotal; // TODO: move rate/threshold to config
+await db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId]);
+```
+
+Also check that `db.query` is awaited and that errors are handled. The diff doesn't show either.

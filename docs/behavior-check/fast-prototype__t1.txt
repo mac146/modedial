@@ -1,0 +1,14 @@
+The bug is the `- 1` in the slice end. `slice(start, end)` already excludes `end`, so `start + size - 1` stops one item short.
+
+```js
+function paginate(items, page, size) {
+  const start = page * size;
+  return items.slice(start, start + size);
+}
+```
+
+Quick check: `paginate([1,2,3,4,5,6], 0, 3)` returns `[1,2,3]`, and page 1 returns `[4,5,6]`. Before the fix, those were `[1,2]` and `[4,5]`.
+
+Pages are 0-indexed. If your UI starts at page 1, use `(page - 1) * size` instead. I didn't change that, so check which one your callers use.
+
+I left `fmt` alone. It works, and it wasn't part of the bug. A TODO for later: `x.getMonth()+1 + "/"` only works because `+` is left-associative, so the number addition happens before the string concatenation. A template string would be clearer.

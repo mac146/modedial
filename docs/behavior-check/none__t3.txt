@@ -1,0 +1,25 @@
+**Review: do not merge.** This diff has four problems, two of them serious.
+
+1. **Off-by-one crash (bug).** `i <= items.length` reads `items[items.length]`, which is `undefined`. The next access then throws `TypeError: Cannot read properties of undefined`. Every call will crash. Use `i < items.length`.
+
+2. **SQL injection (security).** The query is built by string concatenation: `"... SET total = " + total + " WHERE id = " + orderId`. `orderId` is almost certainly caller-controlled, so this is injectable. Use a parameterized query:
+   ```js
+   db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId]);
+   ```
+   (Placeholder syntax depends on the driver, for example `$1, $2` for pg.)
+
+3. **Unexplained behavior change.** The diff adds a 10% discount above 100, and the description doesn't mention it. This is a business rule, so it needs confirmation. The bare `100` and `0.9` should be named constants. Floating-point money math (`* 0.9`) should use integer cents or a decimal library, and the result should be rounded.
+
+4. **Regression in style and scope.** The clean `reduce` was replaced with a manual loop, and nothing justifies that. If you keep the diff otherwise, restore `reduce`. Also, `calculate total` and `write to DB` are now mixed in one place. Separating them would make the logic testable without a database.
+
+**Also missing:**
+- There is no handling for an empty `items` array or invalid `price`/`qty` values (negative, `NaN`).
+- `db.query` is not awaited and has no error handling. A failed update would go unnoticed.
+- There are no tests. The crash in item 1 would have been caught by any test with a non-empty cart.
+
+**Suggested shape:**
+```js
+const subtotal = items.reduce((s, i) => s + i.price * i.qty, 0);
+const total = subtotal > DISCOUNT_THRESHOLD ? subtotal * (1 - DISCOUNT_RATE) : subtotal;
+await db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId]);
+```

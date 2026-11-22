@@ -1,0 +1,30 @@
+**Must-fix**
+
+1. `paginate` is off by one. In `slice(start, start + size - 1)`, the end index is exclusive, so the slice returns only `size - 1` items. That is why every page loses its last item. Fix:
+   ```js
+   return items.slice(start, start + size);
+   ```
+   Check: `page=0, size=10` gives `slice(0, 10)`, which returns items 0–9. The buggy version gave `slice(0, 9)`, which returns items 0–8.
+
+**Edge cases to decide on (not part of this bug)**
+
+2. `page` is 0-indexed (`start = page * size`). If callers or the UI pass 1-indexed pages, the first page is skipped. I can't tell from the snippet, so please confirm the convention.
+3. There is no input validation:
+   - `size <= 0`, a negative `page` or a non-integer value gives surprising results. For example, a negative `start` makes `slice` count from the end.
+   - Non-array `items` throws.
+   
+   Validate or clamp these if the inputs come from user-controlled query parameters.
+
+**Nice-to-have**
+
+4. Add a regression test. For 25 items with `size=10`, expect pages of 10, 10 and 5 items, and the concatenation of all pages should equal the original array. This would have caught the bug.
+
+**`fmt` (minor, but one real concern)**
+
+5. `fmt` works for valid dates. Two things to check:
+   - `new Date("YYYY-MM-DD")` parses as UTC, but `getMonth()`, `getDate()` and `getFullYear()` read local time. In timezones behind UTC, a date-only string like `"2024-03-01"` will display as `2/29/2024`. Use the `getUTC*` methods, or pass full local timestamps.
+   - An invalid input produces `NaN/NaN/NaN` without any error.
+
+**Not checked**
+
+I couldn't see the callers, so I haven't confirmed the page-indexing convention or how `fmt` is used. I also haven't run any tests, since this exercise is text-only.

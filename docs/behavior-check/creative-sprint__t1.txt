@@ -1,0 +1,26 @@
+**Bug:** `start + size - 1` makes the slice one item short. `slice`'s end index is exclusive, so the end should be `start + size`.
+
+**Three approaches**
+1. **Minimal fix:** change the end to `start + size`. It's a one-token change and the lowest risk.
+2. **Derived end:** use `slice(start, start + size)` and add guards for bad input (`size <= 0`, negative `page`). It's the same fix with a little hardening.
+3. **Unconventional:** return a generator, `function* pages(items, size)`, that yields each page lazily. Callers never do index math, so this class of off-by-one can't recur. The risk is that it changes the API for existing callers.
+
+**Recommendation:** approach 2. It fixes the reported bug and adds cheap guards without changing the signature.
+
+**Rough version**
+```js
+function paginate(items, page, size) {
+  if (size <= 0 || page < 0) return [];
+  const start = page * size;
+  return items.slice(start, start + size);
+}
+```
+
+**Risks to flag**
+- **Pages are zero-indexed.** If the UI passes 1-based pages, page 1 skips the first `size` items. Check the callers.
+- **Existing workarounds.** Some callers may have compensated for the dropped item, for example by requesting `size + 1`. They would now over-fetch.
+- **Tests.** Add one: `paginate([1,2,3,4,5], 0, 2)` should return `[1,2]`.
+
+**`fmt`:** it works, but `getMonth()+1 + "/"` relies on operator precedence. It happens to evaluate correctly (number addition, then string concatenation). I'd leave it alone for this fix.
+
+I used ToolSearch once to load the `set_mode` schema, since the tool couldn't be called without it. I didn't use any other tools.

@@ -1,0 +1,35 @@
+Debug mode is active. I can't read or run anything in this exercise, so I can't reproduce the problem or confirm the fix. Treat the code below as untested.
+
+**Hypothesis:** `POST /login` has no throttling, so an attacker can try passwords as fast as the server answers. I'm assuming this from your description, since I haven't seen `app.js`.
+
+**Smallest change:** add `express-rate-limit` to the `/login` route only.
+
+```bash
+npm i express-rate-limit
+```
+
+```js
+const rateLimit = require('express-rate-limit');
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,    // 15-minute window
+  limit: 5,                    // 5 attempts per IP per window (`max` in v6 and older)
+  standardHeaders: true,       // send RateLimit-* headers
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // only failed logins count toward the limit
+  message: { error: 'Too many login attempts. Try again later.' },
+});
+
+app.post('/login', loginLimiter, existingLoginHandler);
+```
+
+Put `loginLimiter` before the handler and leave `express.json()` where it is. Nothing else needs to change.
+
+**Caveats:**
+- **Behind a proxy or load balancer:** set `app.set('trust proxy', 1)`, adjusting the number to your hop count. Without it, every client shares the proxy's IP and one attacker can lock out everyone. With too high a value, attackers can spoof `X-Forwarded-For`.
+- **Multiple instances or restarts:** the default store is in-memory and per process. Use a shared store such as `rate-limit-redis` if you run more than one instance.
+- **Distributed guessing:** a per-IP limit won't stop an attacker who rotates IPs. A per-username limit (`keyGenerator` on `req.body.username`) covers that, but it lets an attacker lock a victim out on purpose, so consider a delay or CAPTCHA instead of a hard lockout.
+
+**To confirm the fix (not done):** send 6 bad logins in a row, for example with `for i in 1..6; curl -X POST ...`. The sixth should return 429 with a `Retry-After` header. A correct login after the limit is hit should also return 429 until the window resets.
+
+Nothing is ruled out yet, because I have no evidence from your app. If you paste `app.js`, I can check where the limiter fits and whether the proxy setting matters for your deployment.

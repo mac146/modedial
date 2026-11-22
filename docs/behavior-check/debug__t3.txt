@@ -1,0 +1,25 @@
+I haven't run anything. This is text-only, so I can't reproduce these, and everything below comes from reading the diff.
+
+**Primary defect (certain): off-by-one in the loop**
+- Evidence: `i <= items.length` makes the last iteration read `items[items.length]`, which is `undefined`.
+- Failure: `undefined.price` throws a `TypeError` on every call, including an empty `items` array. The order total is never written.
+- Smallest fix: change `<=` to `<`. The original `reduce` was already correct, so the better option is to revert to it.
+
+**Second defect (high severity): SQL injection**
+- Evidence: the query is built with `"... WHERE id = " + orderId`.
+- Failure: if `orderId` comes from a request, a value like `1; DROP TABLE orders--` runs as SQL. `total` is also interpolated, and it could become `NaN` if an item is malformed.
+- Fix: use a parameterized query, for example `db.query("UPDATE orders SET total = ? WHERE id = ?", [total, orderId])`. Use `$1, $2` if the driver is Postgres.
+
+**Lower-confidence concerns**
+- **Unrelated change bundled in:** the 10% discount over 100 is business logic that has nothing to do with the loop rewrite. The `100` and `0.9` values are magic numbers. It should be a separate, deliberate change with its own test.
+- **Floating-point money:** `total * 0.9` yields values like `89.99999999999999`. Use integer cents or round explicitly.
+- **No error handling:** `db.query` is neither awaited nor checked, so a failed write goes unnoticed. This holds if the driver is async.
+- **Unvalidated inputs:** `price` and `qty` are not checked, so a string or negative value silently corrupts the total.
+
+**Verification plan** (not run)
+1. Failing case: call it with `items = [{price: 10, qty: 2}]` and expect a `TypeError`. A single-item array is the minimal repro.
+2. After the `<` fix, the same input should give `total = 20`.
+3. With `items = [{price: 60, qty: 2}]`, expect `108`, not `120`.
+4. Pass `orderId = "1 OR 1=1"` and confirm it is bound as a parameter and not executed as SQL.
+
+**Recommendation:** block the merge. Revert the loop to `reduce`, parameterize the query, and move the discount into its own PR with tests.
