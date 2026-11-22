@@ -58,3 +58,7 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 - **Codex quirk:** non-interactive `codex exec` blocks MCP tool calls without approval. `default_tools_approval_mode = "approve"` on the server entry fixes it; interactive Codex just asks. Documented in the README and on the site.
 - **Environment issues found while testing** (not modedial bugs): opencode 1.14.39 can't use the free tier (needs 1.18+), and the founder's default Codex model (gpt-5.4) is unsupported on a ChatGPT account, so a supported model was passed with `-m`. We did not change either tool's configuration.
 - **Claims updated everywhere** (site, README, posts) from "Claude Code only" to "Claude Code, Codex CLI and opencode, one smoke test each; Cursor untested".
+
+## 2026-11-22 · Commit email and Cursor test
+- **History rewritten to GitHub's noreply address** (`<id>+mac146@users.noreply.github.com`) with the founder's approval, then force-pushed to the private repo. No commit carries a personal email any more, and the repo-local git config uses the noreply address. GitHub may keep the old commit objects reachable by SHA for a while even though no branch points at them; the repo is private and was never shared.
+- **Cursor:** opened a throwaway project with `.cursor/mcp.json` in the founder's Cursor. Cursor discovered the server (`project-0-cursor-test-modedial`) but left it `disconnected` because project servers must be enabled in the UI. Waiting on that one click; result goes in `docs/agent-tests/README.md`.
