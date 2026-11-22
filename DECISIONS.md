@@ -44,3 +44,10 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 - **Card footer project name is opt-in** via `MODEDIAL_CARD_PROJECT=1` (default off), taken from the folder name, drawn into the image only and never written to the log.
 - **Recap image** shows the top 3 modes by switches, total switches, longest stretch, busiest time of day, and the playful personality label. It refuses to draw when the log is empty.
 - **Claims audit:** the landing copy said it works "for Claude Code, Cursor, Codex". Only Claude Code is tested, so it now says "Tested with Claude Code, with setup for Cursor, Codex and other MCP clients". There is no benchmark for any performance claim, and none is made. What we have is a 1-run-per-cell observational check of response style.
+
+## 2026-11-22 · Phase 4: launch assets
+- **Landing page:** `site/index.html` is the approved label-printer design as a real static page, with review notes removed and fonts self-hosted (`site/fonts/`, no Google Fonts call, consistent with the privacy stance). No build step. Mobile stacking verified at 500px and desktop at 1280px with headless Edge; phone widths under 500px and dark mode were not checked. The page's printer and transcripts are illustrations and are labelled as such; the real demo clip is still to be recorded.
+- **Demo:** `docs/launch/DEMO_SCRIPT.md` is a shot list for a real recording. The agent's output must not be mocked.
+- **Posts:** `docs/launch/POSTS.md` has drafts for X, Reddit and Hacker News. They state the limits (cannot force behavior, no benchmark, Claude Code tested only) and disclose that it was built with Claude Code. Nothing is published.
+- **Measurement:** `LAUNCH_LOG.md` now defines how installs and shares are counted and where the numbers overstate (npm counts include bots, CI and repeated `npx` runs). There is no telemetry, so no active-user figure.
+- **Pre-launch checklist:** `docs/launch/CHECKLIST.md`, including the commit-email question and every step that needs the founder's accounts.

@@ -2,7 +2,16 @@
 
 Named **modes** for coding agents, as a tiny MCP server. Switch your agent between things like *Deep Focus*, *Debug Mode* or *Fast Prototype* with one call, and get a shareable card and a local recap.
 
-> Working name. Status: pre-release, not yet on npm.
+> Status: pre-release, not yet on npm. Tested with Claude Code only.
+
+<!-- TODO: add the demo GIF/MP4 here after recording (see docs/launch/DEMO_SCRIPT.md) -->
+
+<p>
+  <img src="docs/examples/card-debug.png" alt="Mode card for Debug Mode" width="49%">
+  <img src="docs/examples/card-deep-focus.png" alt="Mode card for Deep Focus" width="49%">
+</p>
+
+Every mode switch makes a card like these, drawn locally. The sample images are in [docs/examples](docs/examples).
 
 ## What it does (and doesn't)
 
