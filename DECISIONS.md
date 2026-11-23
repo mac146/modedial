@@ -62,3 +62,9 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 ## 2026-11-22 · Commit email and Cursor test
 - **History rewritten to GitHub's noreply address** (`<id>+mac146@users.noreply.github.com`) with the founder's approval, then force-pushed to the private repo. No commit carries a personal email any more, and the repo-local git config uses the noreply address. GitHub may keep the old commit objects reachable by SHA for a while even though no branch points at them; the repo is private and was never shared.
 - **Cursor:** opened a throwaway project with `.cursor/mcp.json` in the founder's Cursor. Cursor discovered the server (`project-0-cursor-test-modedial`) but left it `disconnected` because project servers must be enabled in the UI. Waiting on that one click; result goes in `docs/agent-tests/README.md`.
+
+## 2026-11-23 · Phase 5 pilot 1
+- **Started Part A** (our own benchmark, no user data). Hypotheses and tasks were committed before any run (`bench/HYPOTHESES.md`).
+- **Result:** 48/48 runs passed with zero scope violations in every condition (ceiling effect), so H2 and H3 are untested, not confirmed or refuted. Modes cost about 9–34% more per run than no mode on these tasks. Written up in `bench/RESULTS.md`.
+- **No claims change.** The site, README and posts still make no performance claim.
+- **Next:** harder tasks the baseline can fail, committed before running. Part B (opt-in telemetry) stays on hold behind the "no backend" rule.

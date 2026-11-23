@@ -1,0 +1,2 @@
+{"task":"paginate","cond":"none","rep":1,"pass":true,"testIntact":true,"scope":0,"changed":["src/paginate.js"],"modeCalled":false,"modeExpected":false,"cost_usd":0.0743886,"turns":9,"duration_ms":17042,"is_error":false,"ts":"2026-11-23T18:00:44.987Z"}
+{"task":"paginate","cond":"debug","rep":1,"pass":true,"testIntact":true,"scope":0,"changed":["src/paginate.js"],"modeCalled":true,"modeExpected":true,"cost_usd":0.08729780000000001,"turns":11,"duration_ms":18614,"is_error":false,"ts":"2026-11-23T18:01:07.281Z"}
