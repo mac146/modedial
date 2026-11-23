@@ -43,3 +43,8 @@ A 6-run smoke test (kept in `results/smoke2.jsonl`, excluded from analysis) foun
 Replacement: **`review-subtle`**, one review task with 6 seeded subtle bugs (cache race, millisecond/second unit mismatch, NaN not handled, `||` instead of `&&`, input mutation, `forEach` with an async callback). H1 now uses recall out of 6 on this task. With one review task and 5 runs per cell, the review result is the weakest part of this pilot and will be labelled that way.
 
 Everything else in this document is unchanged.
+
+## Amendment 2 (2026-11-24, before any valid pilot 2 data existed)
+The first full launch of pilot 2 produced **150 runs that all errored** at about half a second each, with no turns and no cost. The cause was a harness bug introduced by the long-path fix: the long temp path contains spaces and the MCP config path was not quoted, so the `claude` command failed before reaching the model. No model output existed, so nothing could be analyzed or cherry-picked. The files are kept in `results/invalid-attempt1/` for transparency and are excluded. The harness now quotes the path; a 4-run smoke test (`results/smoke3.jsonl`) shows real runs with turns, costs and `set_mode` calls recorded. The pilot is then rerun in full, unchanged otherwise.
+
+Observed in that smoke test, and to be kept in mind: haiku solved the cart task with and without a mode, and found 5 of 6 seeded bugs in `review-subtle` with and without a mode, so a ceiling effect is possible again. It is reported as it comes out.

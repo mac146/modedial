@@ -82,7 +82,7 @@ function runOne(task, cond, rep, model, out) {
   const cfg = join(home, "mcp.json");
   writeFileSync(cfg, JSON.stringify({ mcpServers: { modedial: { command: "node", args: [CLI], env: { MODEDIAL_HOME: home.replace(/\\/g, "/"), MODEDIAL_NO_CARD: "1" } } } }));
   const t0 = Date.now();
-  const args = ["-p", "--output-format", "json", "--permission-mode", "acceptEdits", "--max-turns", "25", "--mcp-config", cfg, "--strict-mcp-config",
+  const args = ["-p", "--output-format", "json", "--permission-mode", "acceptEdits", "--max-turns", "25", "--mcp-config", '"' + cfg + '"', "--strict-mcp-config",
     "--allowedTools", "Read,Edit,Write,Glob,Grep,Bash(node:*),Bash(npm:*),mcp__modedial"];
   if (model) args.push("--model", model);
   const r = spawnSync("claude", args, { cwd: dir, input: buildPrompt(cond, task), encoding: "utf8", timeout: 420000, shell: true });
