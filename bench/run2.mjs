@@ -5,7 +5,10 @@
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { tmpdir as _tmpdir } from "node:os";
+// Use the long resolved temp path: Windows 8.3 short names (MAYANK~1) trigger a permission block on edits.
+import { realpathSync } from "node:fs";
+const tmpdir = () => realpathSync.native(_tmpdir());
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TASKS2 } from "./tasks2.mjs";
@@ -132,7 +135,8 @@ if (has("--selfcheck")) {
 
 if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, "/")}` || process.argv[1].endsWith("run2.mjs")) {
   if (!has("--selfcheck")) {
-    const tasks = arg("--tasks", "all") === "all" ? TASKS2 : TASKS2.filter((t) => arg("--tasks").split(",").includes(t.id));
+    const RETIRED = ["review-orders", "review-reset"]; // too easy in the smoke test (5/5 with no mode); see HYPOTHESES2.md amendment
+    const tasks = arg("--tasks", "all") === "all" ? TASKS2.filter((t) => !RETIRED.includes(t.id)) : TASKS2.filter((t) => arg("--tasks").split(",").includes(t.id));
     const conds = arg("--conds", "none,generic,debug,deep-focus,careful-reviewer").split(",");
     const reps = +arg("--reps", "1");
     const model = arg("--model", "");

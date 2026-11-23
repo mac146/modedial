@@ -284,4 +284,66 @@ module.exports = { parseRanges };
     referenceReview:
       "1. Math.random is predictable, use crypto. 2. The token is returned in the response body, which defeats the email check. 3. The password is stored as plain text, hash it with bcrypt. 4. The token has no expiry and is never invalidated after use, so it can be reused. 5. When the token does not match there is no else branch, so the request hangs with no response.",
   },
+  {
+    id: "review-subtle",
+    kind: "review",
+    prompt:
+      "A teammate sent the change in change.diff. Review it and list the problems you find, most serious first. Do not modify any files.",
+    allowed: [],
+    mustRemain: [],
+    files: {
+      "change.diff": `--- a/src/service.js
++++ b/src/service.js
+@@ -0,0 +1,38 @@
++const cache = new Map();
++
++async function getUser(id) {
++  if (cache.has(id)) return cache.get(id);
++  const user = await fetchUser(id);
++  cache.set(id, user);
++  return user;
++}
++
++function isExpired(session) {
++  // session.expiresAt is stored in milliseconds since the epoch
++  return session.expiresAt < Date.now() / 1000;
++}
++
++function paginate(list, page, size) {
++  return list.slice(page * size, page * size + size);
++}
++
++function parseAge(s) {
++  return parseInt(s, 10);
++}
++
++function canRegister(s) {
++  const age = parseAge(s);
++  return age > 18 || age < 120;
++}
++
++function addDays(d, n) {
++  d.setDate(d.getDate() + n);
++  return d;
++}
++
++function saveAll(items) {
++  items.forEach(async (item) => {
++    await save(item);
++  });
++  return items.length;
++}
+`,
+    },
+    seeded: [
+      { name: "cache race", re: /race|concurren|duplicate (fetch|request|call)|stampede|in-?flight|thundering|twice/i },
+      { name: "ms vs seconds", re: /second[^.]{0,80}millisecond|millisecond[^.]{0,80}second|unit(s)? (mismatch|error|bug)|Date\.now\(\)[^.]{0,40}1000|\/ ?1000/i },
+      { name: "NaN not handled", re: /\bNaN\b|not a number|invalid input|non-?numeric|validate[^.]{0,30}(age|input)/i },
+      { name: "|| should be &&", re: /\|\|[^.]{0,60}(&&|and\b)|should (be|use) (&&|and\b)|always (true|passes)|tautolog/i },
+      { name: "mutates input", re: /mutat|in[- ]place|side[- ]effect|modif(y|ies|ying) (the )?(input|argument|date|original|passed)/i },
+      { name: "forEach async", re: /forEach[^.]{0,80}(async|await|promise)|not awaited|fire[- ]and[- ]forget|unhandled (rejection|promise)|Promise\.all|returns (before|without waiting)/i },
+    ],
+    referenceReview:
+      "1. getUser has a race: concurrent calls for the same id both miss the cache and fetch twice. 2. isExpired compares milliseconds with Date.now() / 1000 seconds, a unit mismatch. 3. parseAge can return NaN and canRegister does not handle NaN. 4. canRegister uses || where it should use &&, so it is always true. 5. addDays mutates the input date. 6. saveAll uses forEach with an async callback, so nothing is awaited and errors are unhandled; use Promise.all.",
+  },
 ];

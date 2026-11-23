@@ -20,7 +20,7 @@ for (const model of [...new Set(rows.map((r) => r.model))]) {
       console.log(`\n== model ${model} | ${kind} | ${name}`);
       console.log(
         pad("condition", 17) + pad("runs", 6) +
-          (kind === "fix" ? pad("visible", 9) + pad("hidden", 9) + pad("full pass", 11) : pad("bugs found (mean/5)", 21)) +
+          (kind === "fix" ? pad("visible", 9) + pad("hidden", 9) + pad("full pass", 11) : pad("bugs found (mean)", 21)) +
           pad("scope", 7) + pad("turns", 7) + pad("cost $", 8) + pad("mode called", 12) + "errors",
       );
       for (const c of conds) {
