@@ -16,7 +16,7 @@ Pre-registered in `HYPOTHESES2.md` (with three amendments, all written before or
 | sonnet | debug | 10/15 | 0.00 | 8.2 | $0.078 |
 | sonnet | deep-focus | 10/15 | 0.00 | 7.3 | $0.067 |
 
-Per task: `cart` and `ranges` were solved almost every time in every condition. `memo` failed the hidden test in **all 40** runs, in every condition and both models (visible test passed every time). We have not diagnosed which hidden assertion they miss.
+Per task: `cart` and `ranges` were solved almost every time in every condition. `memo` failed the hidden test in **all 40** runs, in every condition and both models (visible test passed every time). **Diagnosed afterwards (see the erratum at the end): this was a flaw in the task, not a result about the models or modes.**
 
 ## Review task (seeded bugs found, out of 6, keyword-scored)
 | Model | none | generic | careful-reviewer | Turns (none → mode) |
@@ -48,3 +48,10 @@ Modes made runs longer and more expensive: debug used about 59% more turns and a
 - Keep making no performance claim anywhere. This pilot gives no support for one.
 - Plain, defensible statement we can make: "On a small benchmark of bug-fix and review tasks, modes did not beat a one-line prompt and cost more tokens. They change how the agent communicates."
 - Part B of `docs/PHASE5.md` (opt-in usage telemetry and a backend) is not justified by this result. A bigger Part A run is justified only if there is appetite for finding a harder task set where a mode could matter.
+
+## Erratum (same day, after inspecting two haiku `memo` solutions)
+The `memo` hidden test is unfair, so the `memo` row in this document is invalid.
+- Both inspected solutions were correct, careful implementations (a trie keyed by value identity, handling `undefined`, `null`, `""`, `"1,2"` versus `1, 2`, and `"constructor"`).
+- They failed only because the hidden test expects `f({ a: 1 })` called twice with two separate but equal object literals to be a cache hit, which means structural equality. The code comment only says "exact arguments", which reasonably means identity. The spec was ambiguous and my test picked one reading.
+- Consequence: the 0/40 on `memo` says nothing about models or modes. The remaining fix tasks (`cart`, `ranges`) were solved almost every time in every condition, and the review task hit a ceiling. **So pilot 2 is weaker than it first looked: effectively no task left room for a mode to help.** "No evidence of benefit" stands, but it rests on tasks that could not show a benefit. It should not be read as "modes were tested and failed".
+- This also showed something useful: the agents silently picked one reading of an ambiguous spec and did not flag the ambiguity. That is a behavior a mode could target.

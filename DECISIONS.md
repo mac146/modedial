@@ -75,3 +75,7 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 - **Modes cost more:** roughly 10 to 60% more cost and up to about 60% more turns, with no measured benefit.
 - **Process notes:** three amendments to the pre-registration were logged (short-path edit block, unquoted config path, interrupted run). The invalid first launch (150 errored runs, no model output) is archived and excluded. Haiku's `||` bug was found in all review replies but under-counted by the keyword pattern.
 - **Claims unchanged:** still no performance claim anywhere. Part B (telemetry/backend) is not justified by this result and stays on hold.
+
+## 2026-11-24 · Erratum on pilot 2
+- The `memo` hidden test required structural equality for object arguments, which the spec ("exact arguments") does not say. Agents implemented identity and failed the test with correct code. The `memo` result (0/40) is invalid and the write-up in `bench/RESULTS2.md` now says so.
+- Net effect: pilot 2 had no task with room for a mode to help (cart, ranges and review at ceiling; memo invalid). "No evidence of benefit" is true but weak. Next step is a calibrated benchmark plus modes redesigned around observed failures, not more runs of the same tasks.
