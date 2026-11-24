@@ -168,6 +168,14 @@ kbd { font: 700 .7rem/1 var(--mono); border: 1px solid var(--ink-2); border-bott
 .tells span { font: 700 .75rem/1 var(--mono); padding: .5em .75em; border-radius: 3px; border: 1.5px dashed var(--tape); background: color-mix(in srgb, var(--tape) 14%, transparent); }
 .note { font-size: .82rem; color: var(--ink-2); }
 
+.glist { margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: .3rem; font-size: .9rem; }
+.gcards { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.2rem; margin-top: 2.5rem; }
+.gcard { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.4rem; display: flex; flex-direction: column; gap: .8rem; }
+.gcard h3 { font-size: 1.25rem; font-weight: 700; }
+.gcard p { color: var(--ink-2); font-size: .95rem; }
+.proof { margin-top: 2rem; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.2rem; }
+.proof div { border-top: 2px solid var(--ink); padding-top: .8rem; font-size: .92rem; color: var(--ink-2); }
+.proof b { display: block; color: var(--ink); font: 700 .75rem/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; margin-bottom: .5rem; }
 /* print your card */
 .maker { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: 1.5rem; margin-top: 2.5rem; align-items: start; }
 .ctrl { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; align-items: center; }
@@ -214,6 +222,7 @@ kbd { font: 700 .7rem/1 var(--mono); border: 1px solid var(--ink-2); border-bott
 footer { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; justify-content: space-between; padding-block: 2rem 2.5rem; color: var(--ink-2); font-size: .88rem; }
 
 @media (max-width: 860px) {
+  .gcards, .proof { grid-template-columns: minmax(0, 1fr); }
   .hero-grid, .picker, .maker, .two, .steps { grid-template-columns: minmax(0, 1fr); }
   .rcard { aspect-ratio: auto; min-height: 30rem; }
   nav .links a:not(:last-child) { display: none; }
@@ -279,6 +288,23 @@ footer { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; justify-content: spa
     </div>
   </section>
 
+  <section id="guards">
+    <p class="eyebrow">Not just advice</p>
+    <h2>Some modes have rules the agent can't break.</h2>
+    <p class="lede" style="margin-top:1rem">Instructions are a request. Where an agent supports hooks or permissions, modedial turns the important parts into guards that run as code, so they hold even when the model would rather not.</p>
+    <div class="gcards">
+      <div class="gcard" style="--tape:#7A4DFF;--on:#FFFFFF"><span class="tape" style="align-self:flex-start">Careful Reviewer</span><h3>It can't edit your code.</h3><p>File edits are denied, and so are shell commands that change files, git state or packages. Its reply must end with what it did not check.</p></div>
+      <div class="gcard" style="--tape:#FF8A3D;--on:#14161B"><span class="tape" style="align-self:flex-start">Debug Mode</span><h3>No finishing on a guess.</h3><p>After it edits, it can't wrap up until something has actually run. It's sent back once to run the failing case, or to say the fix is unconfirmed.</p></div>
+      <div class="gcard" style="--tape:#2F5BFF;--on:#FFFFFF"><span class="tape" style="align-self:flex-start">Deep Focus</span><h3>Edits stay inside the lines.</h3><p>The agent declares the files it expects to change. Touching anything else needs your approval. The reply opens with the goal and closes with what it set aside.</p></div>
+      <div class="gcard" style="--tape:#1FA67A;--on:#FFFFFF"><span class="tape" style="align-self:flex-start">Chill Refactor</span><h3>Dependencies stay put.</h3><p>Edits to package.json, lockfiles and other manifests need your approval. It must run the tests after editing, and end with what changed and what it left alone.</p></div>
+    </div>
+    <div class="proof">
+      <div><b>Enforced for real</b>Claude Code (hooks) and opencode (agent permissions). Roo Code custom modes carry the same limits.</div>
+      <div><b>Rules only</b>Cursor, Windsurf, Cline, Codex and Gemini CLI get the guards written into the mode as plain rules, because they can't enforce them. Codex also has its own read-only sandbox.</div>
+      <div><b>How we know</b>The guards are unit-tested, and checked against real Claude Code and opencode sessions. We did not benchmark whether modes improve results, and make no such claim.</div>
+    </div>
+  </section>
+
   <section id="cards">
     <p class="eyebrow">Share it</p>
     <h2>Print your own card.</h2>
@@ -325,14 +351,15 @@ footer { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; justify-content: spa
     <div class="tabs" role="tablist" id="itabs" aria-label="Agent"></div>
     <div class="cmdrow codebox"><pre id="icode"></pre><button class="copy" id="icopy">Copy</button></div>
     <p class="fine" id="inote"></p>
+    <p class="fine">Every agent: <span style="font-family:var(--mono)">npx modedial install</span> lists them, and <span style="font-family:var(--mono)">npx modedial install &lt;agent&gt;</span> writes that agent’s native files. Claude Code, opencode and Codex are checked against real sessions. Cursor, Windsurf, Cline and Roo Code follow their docs. Copilot, Gemini CLI, Kilo Code and Aider are unverified.</p>
   </section>
 
   <section>
     <p class="eyebrow">Plainly</p>
     <h2>Fine print, because we like you.</h2>
     <div class="two">
-      <div><h3>What you get</h3><ul><li>Six bundled modes, each under 150 tokens.</li><li>A card on every switch, and a recap from your own log.</li><li>Open source, MIT licensed.</li></ul></div>
-      <div><h3>What we don’t claim</h3><ul><li>That modes improve results. We haven’t measured that.</li><li>That agents feel anything. These are instructions, not moods.</li><li>That an MCP tool can force behavior. It can’t.</li></ul></div>
+      <div><h3>What you get</h3><ul><li>Six bundled modes, each under 150 tokens, with guards enforced where the agent allows it.</li><li>A card on every switch, and a recap from your own log.</li><li>Open source, MIT licensed.</li></ul></div>
+      <div><h3>What we don’t claim</h3><ul><li>That modes improve results. We haven’t measured that, and one study of similar instruction files found more cost, not better success.</li><li>That agents feel anything. These are instructions, not moods.</li><li>That an MCP tool can force behavior. It can’t.</li></ul></div>
     </div>
   </section>
 
@@ -346,33 +373,153 @@ footer { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; justify-content: spa
   </section>
 </div>
 
+<script src="modes-data.js"></script>
 <script>
-const MODES = [
-  { id:"deep-focus", name:"Deep Focus", key:"Focus", tagline:"One task. No side quests.", effort:"medium", ctx:"Keep to one task; read only files the task needs.", tape:"#2F5BFF", on:"#FFFFFF", rot:-2,
-    ins:"Begin your reply with one line: \"Goal: <the single task>\". Work only on that goal; do not refactor, rename, or fix unrelated code. Ask before widening scope. Keep replies short. End with a section titled \"Set aside:\" listing anything you noticed but deliberately left alone, or \"Set aside: nothing\".",
-    tells:["Goal: …","Set aside: …"], you:"fix the pagination bug, nothing else",
-    out:[["hl","Goal: stop paginate() dropping the last item of each page."],["","Set aside: fmt() uses var and skips zero-padding. Not touched."]] },
-  { id:"debug", name:"Debug Mode", key:"Debug", tagline:"Reproduce first. Guess later.", effort:"high", ctx:"Gather logs, errors and the failing path first.", tape:"#FF8A3D", on:"#14161B", rot:1.5,
-    ins:"Reproduce the problem before changing anything. State one hypothesis at a time and the evidence for it. Make the smallest possible change that tests it. Confirm the fix by re-running the failing case, and say plainly if it is not confirmed. Do not bundle unrelated cleanups.",
-    tells:["Hypothesis","Ruled out","Unconfirmed until re-run"], you:"this test is flaky, debug it",
-    out:[["hl","Reproduced: fails 2 of 5 runs."],["","Hypothesis: shared fixture state leaks. Ruled out: timeouts, network."],["hl","Fix is unconfirmed until it passes 10 runs in a row."]] },
-  { id:"chill-refactor", name:"Chill Refactor", key:"Tidy", tagline:"Tidy up, no behavior change.", effort:"low", ctx:"Stay inside the files being tidied.", tape:"#1FA67A", on:"#FFFFFF", rot:-1,
-    ins:"Improve structure and naming without changing behavior. Work in small steps, running tests after each when possible. Prefer deleting code over adding it; add no features or dependencies. If a risky area lacks tests, say so. End every reply with a short note titled \"Changed / left alone:\" with a \"Changed:\" line and a \"Left alone:\" line.",
-    tells:["Changed / left alone:"], you:"tidy up utils/date.ts",
-    out:[["","Renamed three helpers, removed two dead branches. Tests pass after each step."],["hl","Changed / left alone:"],["","Changed: names, dead code. Left alone: public API, behavior."]] },
-  { id:"creative-sprint", name:"Creative Sprint", key:"Spark", tagline:"Three ideas before one plan.", effort:"medium", ctx:"Broad is fine; explore, then converge on one.", tape:"#D6338A", on:"#FFFFFF", rot:2,
-    ins:"Before building, propose three distinct approaches in one or two lines each, including one unconventional option. Recommend one and say why. Then build a rough version of it quickly. Favor interesting over safe, but flag the risks. Keep polish and edge cases for later.",
-    tells:["Three approaches","One recommendation"], you:"ideas for the empty state?",
-    out:[["","1. Checklist of first steps. 2. Pre-filled sample data. 3. A tiny playable demo."],["hl","Recommend 2: it shows the product working at a glance."],["","Risk: sample data can be mistaken for real data."]] },
-  { id:"careful-reviewer", name:"Careful Reviewer", key:"Review", tagline:"Read twice, comment once.", effort:"high", ctx:"Read the full diff and the code around it.", tape:"#7A4DFF", on:"#FFFFFF", rot:-1.5,
-    ins:"Review without editing files unless asked. Check correctness, edge cases, error handling, security, and tests. Rank findings by severity and cite file and line. Separate must-fix from nice-to-have. Say what you did not check. Do not report style nits unless they hide a bug.",
-    tells:["Must-fix","Nice-to-have","Not checked"], you:"review PR 42",
-    out:[["hl","Must-fix: the loop runs to items.length inclusive (cart.js:14)."],["hl","Must-fix: SQL built by string concatenation (orders.js:31)."],["","Nice-to-have: a regression test. Not checked: callers outside this diff."]] },
-  { id:"fast-prototype", name:"Fast Prototype", key:"Quick", tagline:"Make it work, then make it nice.", effort:"low", ctx:"Read just enough to start; prefer building and running.", tape:"#F5C400", on:"#14161B", rot:1,
-    ins:"Get a working version running as fast as possible. Use the simplest approach and existing dependencies. Skip abstractions, exhaustive error handling, and full test coverage. Mark shortcuts with a TODO so they are easy to find. Show how to run it in one line.",
-    tells:["TODO markers","Run it in one line"], you:"prototype a CSV importer",
-    out:[["hl","Run: node import.js sample.csv"],["","Works for the happy path."],["","TODO: validate headers. TODO: stream large files."]] }
-];
+const EXTRA = {
+  "deep-focus": {
+    "key": "Focus",
+    "rot": -2,
+    "tells": [
+      "Goal: …",
+      "Set aside: …"
+    ],
+    "you": "fix the pagination bug, nothing else",
+    "out": [
+      [
+        "hl",
+        "Goal: stop paginate() dropping the last item of each page."
+      ],
+      [
+        "",
+        "Set aside: fmt() uses var and skips zero-padding. Not touched."
+      ]
+    ]
+  },
+  "debug": {
+    "key": "Debug",
+    "rot": 1.5,
+    "tells": [
+      "Hypothesis",
+      "Ruled out",
+      "Unconfirmed until re-run"
+    ],
+    "you": "this test is flaky, debug it",
+    "out": [
+      [
+        "hl",
+        "Reproduced: fails 2 of 5 runs."
+      ],
+      [
+        "",
+        "Hypothesis: shared fixture state leaks. Ruled out: timeouts, network."
+      ],
+      [
+        "hl",
+        "Fix is unconfirmed until it passes 10 runs in a row."
+      ]
+    ]
+  },
+  "chill-refactor": {
+    "key": "Tidy",
+    "rot": -1,
+    "tells": [
+      "Changed / left alone:"
+    ],
+    "you": "tidy up utils/date.ts",
+    "out": [
+      [
+        "",
+        "Renamed three helpers, removed two dead branches. Tests pass after each step."
+      ],
+      [
+        "hl",
+        "Changed / left alone:"
+      ],
+      [
+        "",
+        "Changed: names, dead code. Left alone: public API, behavior."
+      ]
+    ]
+  },
+  "creative-sprint": {
+    "key": "Spark",
+    "rot": 2,
+    "tells": [
+      "Three approaches",
+      "One recommendation"
+    ],
+    "you": "ideas for the empty state?",
+    "out": [
+      [
+        "",
+        "1. Checklist of first steps. 2. Pre-filled sample data. 3. A tiny playable demo."
+      ],
+      [
+        "hl",
+        "Recommend 2: it shows the product working at a glance."
+      ],
+      [
+        "",
+        "Risk: sample data can be mistaken for real data."
+      ]
+    ]
+  },
+  "careful-reviewer": {
+    "key": "Review",
+    "rot": -1.5,
+    "tells": [
+      "Must-fix",
+      "Nice-to-have",
+      "Not checked"
+    ],
+    "you": "review PR 42",
+    "out": [
+      [
+        "hl",
+        "Must-fix: the loop runs to items.length inclusive (cart.js:14)."
+      ],
+      [
+        "hl",
+        "Must-fix: SQL built by string concatenation (orders.js:31)."
+      ],
+      [
+        "",
+        "Nice-to-have: a regression test. Not checked: callers outside this diff."
+      ]
+    ]
+  },
+  "fast-prototype": {
+    "key": "Quick",
+    "rot": 1,
+    "tells": [
+      "TODO markers",
+      "Run it in one line"
+    ],
+    "you": "prototype a CSV importer",
+    "out": [
+      [
+        "hl",
+        "Run: node import.js sample.csv"
+      ],
+      [
+        "",
+        "Works for the happy path."
+      ],
+      [
+        "",
+        "TODO: validate headers. TODO: stream large files."
+      ]
+    ]
+  }
+};
+const MODES = window.MODEDIAL_MODES.map((d) => ({ ...EXTRA[d.id], id: d.id, name: d.name, tagline: d.tagline, effort: d.effort_hint, ctx: d.context_policy, tape: d.color, on: d.text_color, ins: d.instructions, guards: d.guards || [] }));
+const GUARD_TEXT = {
+  "read-only": "Read-only: file edits and mutating commands are blocked",
+  "scope-lock": "Scope lock: edits outside the declared files need your approval",
+  "verify-before-finish": "Verify first: the agent can't finish after an edit until something has run",
+  "protect-manifests": "Manifest guard: dependency files need your approval",
+  "require-tell": "Required tell: the reply must contain the mode's signature lines",
+};
 const $ = (s, r=document) => r.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const setTape = (el, m) => { el.style.setProperty("--tape", m.tape); el.style.setProperty("--on", m.on); };
@@ -462,7 +609,8 @@ function pick(i) {
     '<div class="meta"><span>effort hint <b>' + m.effort + '</b></span><span>context <b>' + esc(m.ctx) + '</b></span></div>' +
     '<div><div class="eyebrow" style="margin-bottom:.5rem">What the agent receives</div><div class="instr">' + esc(m.ins) + '</div></div>' +
     '<div><div class="eyebrow" style="margin-bottom:.5rem">What you’ll see</div><div class="tells">' + m.tells.map(t => '<span>' + esc(t) + '</span>').join("") + '</div></div>' +
-    '<p class="note">Seen in one test run per mode with Claude Code. That shows the format appeared, not that results are better.</p>';
+    '<div><div class="eyebrow" style="margin-bottom:.5rem">Enforced where the agent supports it</div>' + (m.guards.length ? '<ul class="glist">' + m.guards.map(g => '<li>' + esc(GUARD_TEXT[g] || g) + '</li>').join("") + '</ul>' : '<p class="note">Instructions only. Nothing to enforce for this mode.</p>') + '</div>' +
+    '<p class="note">The tells come from small early test runs with an earlier wording, and the guards are unit-tested. Neither shows that results are better.</p>';
 }
 pick(0);
 

@@ -9,6 +9,9 @@ Facts every post may rely on (all verified in this repo):
 - No telemetry. The local log holds only a mode id, a timestamp and a random session id.
 - Cards and recaps are drawn locally and nothing is uploaded unless you post the image.
 - Tested with Claude Code, Codex CLI and opencode (one smoke test each). Cursor config is provided but untested.
+- On Claude Code and opencode some modes have **enforced guards**: the reviewer cannot edit files, Debug cannot finish an edit until something has run, Deep Focus asks before edits outside a declared scope. Unit-tested, and checked against real sessions.
+- `npx modedial install <agent>` writes native files for 12 agents. Claude Code, opencode and Codex were checked live; Cursor, Windsurf, Cline and Roo Code follow their docs; Copilot, Gemini CLI, Kilo Code and Aider are unverified. Say so if asked.
+- A published study of AGENTS.md files (ETH Zurich) found no success gain and 20%+ more cost. Our pilots saw a similar shape, but they were small and partly flawed, so call it "consistent with", never "proof".
 - No benchmark. A small observational check (1 run per mode per task, 3 tasks) showed each mode changes the reply's style.
 
 ---
@@ -30,6 +33,9 @@ Every mode has a tell, so you can see it's on:
 Debug: "Hypothesis: …  Fix unconfirmed until re-run."
 Deep Focus: opens with "Goal:", ends with what it set aside.
 Careful Reviewer: must-fix, nice-to-have, and what it did NOT check.
+
+**2b/**
+The part I'm proudest of: some modes have guards, not just advice. On Claude Code and opencode, Careful Reviewer literally can't edit your files, and Debug can't wrap up after an edit until something has actually run. Hooks and permissions, not vibes.
 
 **3/**
 Every switch prints a little label card. At the end you get a recap: top modes, longest stretch, busiest time of day, and a silly personality label.
@@ -65,6 +71,8 @@ The fun part: each mode has a visible tell. Debug Mode states a hypothesis and a
 
 Every switch also prints a card, and there's a recap image built from your own log (top modes, longest stretch, busiest time of day, and a personality label that is purely for laughs). All drawn locally.
 
+The bit that makes it more than a prompt pack: on Claude Code and opencode, some modes have guards the agent can't break. Careful Reviewer is read-only (edits and mutating commands are denied), Debug can't finish an edit until something has run, and Deep Focus asks before touching files outside the scope the agent declared. `npx modedial install <agent>` writes native files for a dozen agents (Cursor rules, Roo modes, Windsurf rules, Codex AGENTS.md and more); I checked Claude Code, opencode and Codex against real sessions and say plainly which others are docs-only or unverified.
+
 Straight talk:
 - An MCP tool can't force an agent. It's a nudge, and a CLAUDE.md snippet makes it stick better.
 - I have NOT benchmarked whether modes improve anything. I only checked that each mode changes how the reply looks. So: for fun, not proof.
@@ -92,6 +100,8 @@ I kept typing the same few instructions at coding agents: stay on one task, repr
 `set_mode("debug")` returns a short instruction bundle (under 150 tokens) that the agent follows until `end_mode`. The modes are static data bundled in the package and are never fetched at runtime, since pulling instructions from the network would be a prompt-injection hole.
 
 Each mode asks the agent for a recognizable tell (Debug states a hypothesis and says when a fix is unconfirmed; Deep Focus opens with "Goal:" and ends with what it set aside). Every switch also renders a PNG card locally, and a recap image comes from your own log.
+
+Beyond instructions: on Claude Code (hooks) and opencode (agent permissions) some modes carry enforced guards. The reviewer mode cannot write files, the debug mode cannot finish an edit round without something having run, and the focus mode asks before out-of-scope edits. That part is deterministic code with unit tests, plus a script that checks it against a real session. Other agents (Cursor, Windsurf, Codex, etc.) get the same rules as plain text, because they can't enforce them. `npx modedial install` writes the native files for each.
 
 What it is not:
 - It can't force behavior. It returns text; the agent decides.
