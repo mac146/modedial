@@ -77,3 +77,9 @@ export function applyClaudeCode(opts: { scope: "project" | "user"; cwd: string; 
   }
   return { path, before, after };
 }
+
+/** How an MCP client should start the modedial server: npx when run through it, otherwise this exact build. */
+export function mcpCommand(): { command: string; args: string[] } {
+  const cli = join(dirname(fileURLToPath(import.meta.url)), "cli.js").replace(/\\/g, "/");
+  return /[\\/](_npx|npx-cache)[\\/]/i.test(cli) ? { command: "npx", args: ["-y", "modedial"] } : { command: "node", args: [cli] };
+}

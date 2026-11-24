@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { exportLatestCard, renderModeCard, renderRecapImage } from "./cards.js";
 import { runHook, type HookEvent, type HookInput } from "./hook.js";
-import { applyClaudeCode } from "./install.js";
+import { runInstall } from "./installCmd.js";
 import { EventLog } from "./log.js";
 import { findMode, loadModes } from "./modes.js";
 import { dataDir } from "./paths.js";
@@ -38,13 +38,8 @@ if (cmd === "hook") {
   }
   process.exit(0);
 } else if (cmd === "install" || cmd === "uninstall") {
-  const agent = args[1];
-  if (agent !== "claude-code") fail(`Supported for now: claude-code. Run "modedial --help".`);
   try {
-    const dry = args.includes("--dry-run");
-    const r = applyClaudeCode({ scope: args.includes("--user") ? "user" : "project", cwd: process.cwd(), dryRun: dry, remove: cmd === "uninstall" });
-    if (dry) console.log(`Would write ${r.path}:\n${JSON.stringify(r.after, null, 2)}`);
-    else console.log(`${cmd === "install" ? "Installed modedial hooks into" : "Removed modedial hooks from"} ${r.path}`);
+    console.log(runInstall(cmd, args.slice(1), { cwd: process.cwd() }));
   } catch (e) {
     fail((e as Error).message);
   }
@@ -79,8 +74,9 @@ if (cmd === "hook") {
     [
       "modedial: MCP server (stdio). Run with no args to start it.",
       "  modedial list                          show modes",
-      "  modedial install claude-code [--user] [--dry-run]   add enforcement hooks (project, or --user for all projects)",
-      "  modedial uninstall claude-code [--user]             remove them again",
+      "  modedial install                       list supported agents",
+      "  modedial install <agent|all> [--user] [--dry-run]   set up modes for an agent (claude-code gets enforcement hooks)",
+      "  modedial uninstall <agent|all> [--user]             remove exactly what install added",
       "  modedial card [--out file.png]         export the latest mode card",
       "  modedial card --mode <id> [--out f]    render a card for any mode",
       "  modedial recap [--image] [--out f]     recap from your local log (text, or PNG)",

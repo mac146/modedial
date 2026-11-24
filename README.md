@@ -91,6 +91,33 @@ The hooks are deterministic code with unit tests, and an end-to-end script (`nod
 - Hooks only run if you install them. Without them the guards are not enforced, and the modes behave as plain instructions.
 - Cursor, Codex and opencode currently get the instructions only. Rules, `AGENTS.md` and agent-file installers are next.
 
+## Setup for every agent
+
+```bash
+npx modedial install                  # lists the supported agents and marks the ones it finds in your project
+npx modedial install <agent>          # writes that agent's native files (add --dry-run to preview, --user for global where it applies)
+npx modedial uninstall <agent>        # removes exactly what install added
+```
+
+Each agent gets files in the format it reads natively, so a mode is a real rule file, agent or custom mode in your tool, not only text from a tool call.
+
+| Agent | What `install` writes | Real enforcement | How it was checked |
+|---|---|---|---|
+| Claude Code | Hooks in `.claude/settings.json` | Yes (see above) | Real session, 3/3 scenarios |
+| opencode | `.opencode/agents/modedial-*.md`, `opencode.json` | **Yes**: Careful Reviewer's agent has write, edit and bash off | Real run: agents parsed, reviewer could not create a file, control agent could |
+| Codex CLI | `AGENTS.md` block; prints the `config.toml` snippet | Use `codex --sandbox read-only` for reviews | Real run: Codex read and used the block |
+| Roo Code | `.roomodes` (custom modes) | **Yes**: reviewer has only read and MCP tools; refactor cannot edit manifests | Format from Roo's docs; not run here |
+| Cursor | `.cursor/rules/modedial-*.mdc`, `.cursor/mcp.json` | No (rules) | Format from Cursor's docs; not run here (MCP loading was verified earlier) |
+| Windsurf | `.windsurf/rules/modedial-*.md` | No | Format from Windsurf's docs; not run here |
+| Cline | `.clinerules/modedial.md` | No | Format from docs; not run here |
+| Any `AGENTS.md` reader | `AGENTS.md` block | No | Same block Codex read |
+| GitHub Copilot (VS Code) | `.github/agents/modedial-*.agent.md`, `.vscode/mcp.json` | Reviewer limited to read and search tools | **Unverified** |
+| Gemini CLI | `GEMINI.md` block, `.gemini/commands/modedial/*.toml`, `.gemini/settings.json` | No | **Unverified** |
+| Kilo Code | `.kilocodemodes` | Same as Roo | **Unverified** (file name not confirmed) |
+| Aider | `.modedial/MODES.md` | No | **Unverified** (Aider has no MCP; you load it by hand) |
+
+Where an agent cannot enforce a guard, `install` writes it into the mode as an explicit rule ("Do not finish until you have run something after your last edit"), so the agent at least knows it. Shared files (`AGENTS.md`, `GEMINI.md`, JSON configs) are edited in place with a marked block or one keyed entry, backed up once, and your other content is left alone. The `modedial` MCP server still needs adding to each agent; `install` prints or writes the config where it safely can.
+
 ## Privacy
 
 - No telemetry. No network calls. Nothing leaves your machine unless you choose to share a card or recap.
