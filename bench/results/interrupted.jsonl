@@ -1,0 +1,1 @@
+{"model":"haiku","task":"ranges","kind":"fix","cond":"none","rep":2,"testIntact":true,"scope":0,"changed":["src/ranges.js"],"created":[],"visible":false,"hidden":false,"pass":false,"modeCalled":false,"modeExpected":false,"reply_words":0,"cost_usd":null,"turns":null,"duration_ms":23970,"is_error":true,"ts":"2026-11-23T19:13:42.403Z"}

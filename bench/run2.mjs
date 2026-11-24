@@ -141,10 +141,18 @@ if (import.meta.url === `file:///${process.argv[1].replace(/\\/g, "/")}` || proc
     const reps = +arg("--reps", "1");
     const model = arg("--model", "");
     const out = arg("--out", "bench/results/pilot2.jsonl");
+    // --resume skips cells already present in the output file (used after an interrupted run)
+    const done = new Set();
+    if (has("--resume") && existsSync(out))
+      for (const l of readFileSync(out, "utf8").trim().split("\n").filter(Boolean)) {
+        const x = JSON.parse(l);
+        done.add(`${x.model}|${x.task}|${x.cond}|${x.rep}`);
+      }
     // interleave so service drift hits every condition evenly
     for (let rep = 1; rep <= reps; rep++)
       for (const t of tasks)
         for (const c of conds.filter((c) => CONDS[t.kind].includes(c))) {
+          if (done.has(`${model || "default"}|${t.id}|${c}|${rep}`)) continue;
           const r = runOne(t, c, rep, model, out);
           const m = r.kind === "review" ? `found=${r.found}/${r.seededTotal}` : `visible=${r.visible} hidden=${r.hidden}`;
           console.log(`${model || "default"} ${t.id}/${c}/#${rep}: ${m} scope=${r.scope} turns=${r.turns} cost=${r.cost_usd} ${Math.round(r.duration_ms / 1000)}s modeCalled=${r.modeCalled}${r.is_error ? " ERROR" : ""}`);
