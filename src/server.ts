@@ -34,7 +34,14 @@ export function createServer(
     {
       description:
         "Activate a mode. Returns short instructions you should follow until end_mode is called or the user picks another mode.",
-      inputSchema: { id: z.string().describe("Mode id from list_modes, e.g. deep-focus") },
+      inputSchema: {
+        id: z.string().describe("Mode id from list_modes, e.g. deep-focus"),
+        scope: z
+          .array(z.string())
+          .max(50)
+          .optional()
+          .describe("Optional. Files, folders or globs you expect to change. Used by Deep Focus: editing outside them needs the user's approval."),
+      },
     },
     async ({ id }) => {
       const m = findMode(modes, id);

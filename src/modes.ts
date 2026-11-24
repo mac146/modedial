@@ -13,6 +13,13 @@ export const ModeSchema = z.object({
   emoji: z.string().min(1),
   color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
   text_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  /**
+   * Behavior the modedial hooks enforce on agents that support hooks (today: Claude Code).
+   * Without the hooks installed, guards are not enforced and the instructions are advice.
+   */
+  guards: z.array(z.enum(["read-only", "scope-lock", "verify-before-finish", "protect-manifests", "require-tell"])).default([]),
+  /** Phrases the final reply must contain when the "require-tell" guard is on. */
+  tell: z.object({ required: z.array(z.string().min(1)).min(1) }).optional(),
 });
 
 export type Mode = z.infer<typeof ModeSchema>;
@@ -43,5 +50,6 @@ export function formatModeBundle(m: Mode): string {
     "",
     "Follow these instructions until end_mode is called or the user asks for a different mode:",
     m.instructions,
+    ...(m.guards.length ? ["", `Guards (enforced only where the modedial hooks are installed): ${m.guards.join(", ")}`] : []),
   ].join("\n");
 }

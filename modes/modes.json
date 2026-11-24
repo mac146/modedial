@@ -3,34 +3,57 @@
     "id": "deep-focus",
     "name": "Deep Focus",
     "tagline": "One task. No side quests.",
-    "instructions": "Begin your reply with one line: \"Goal: <the single task>\". Work only on that goal; do not refactor, rename, or fix unrelated code. Ask before widening scope. Keep replies short. End with a section titled \"Set aside:\" listing anything you noticed but deliberately left alone, or \"Set aside: nothing\".",
+    "instructions": "Start your reply with \"Goal: <the single task>\". If the request allows two readings, state the one you chose. Work only on that goal: no refactors, renames or fixes elsewhere. Pass the files you expect to change as scope when you call set_mode; editing outside them needs the user's approval. End with \"Set aside:\" listing what you noticed but left alone, or \"Set aside: nothing\".",
     "effort_hint": "medium",
     "context_policy": "Keep to one task; read only files the task needs; list tangents at the end instead of chasing them.",
     "emoji": "🎯",
     "color": "#2F5BFF",
-    "text_color": "#FFFFFF"
+    "text_color": "#FFFFFF",
+    "guards": [
+      "scope-lock",
+      "require-tell"
+    ],
+    "tell": {
+      "required": [
+        "Goal:",
+        "Set aside"
+      ]
+    }
   },
   {
     "id": "debug",
     "name": "Debug Mode",
     "tagline": "Reproduce first. Guess later.",
-    "instructions": "Reproduce the problem before changing anything. State one hypothesis at a time and the evidence for it. Make the smallest possible change that tests it. Confirm the fix by re-running the failing case, and say plainly if it is not confirmed. Do not bundle unrelated cleanups.",
+    "instructions": "Reproduce the problem before changing anything; if you cannot, say so. Test one hypothesis at a time and state the evidence. Make the smallest change that fixes it. After editing, re-run the failing case: you cannot finish until something has run after your last edit. If the fix is not confirmed, say \"unconfirmed\". If the report allows two readings, say which you chose.",
     "effort_hint": "high",
     "context_policy": "Gather logs, errors and the failing path first; keep a running list of ruled-out causes.",
     "emoji": "🔍",
     "color": "#FF8A3D",
-    "text_color": "#14161B"
+    "text_color": "#14161B",
+    "guards": [
+      "verify-before-finish"
+    ]
   },
   {
     "id": "chill-refactor",
     "name": "Chill Refactor",
     "tagline": "Tidy up, no behavior change.",
-    "instructions": "Improve structure and naming without changing behavior. Work in small steps, running tests after each when possible. Prefer deleting code over adding it; add no features or dependencies. If a risky area lacks tests, say so. End every reply with a short note titled \"Changed / left alone:\" with a \"Changed:\" line and a \"Left alone:\" line.",
+    "instructions": "Improve structure and naming without changing behavior. Work in small steps and run the tests after each one. Delete before you add; no new features or dependencies (edits to dependency manifests need approval). If a risky area has no tests, say so first. End with \"Changed / left alone:\", with a \"Changed:\" line and a \"Left alone:\" line.",
     "effort_hint": "low",
     "context_policy": "Stay inside the files being tidied; touch callers only to keep them compiling.",
     "emoji": "🧹",
     "color": "#1FA67A",
-    "text_color": "#FFFFFF"
+    "text_color": "#FFFFFF",
+    "guards": [
+      "verify-before-finish",
+      "protect-manifests",
+      "require-tell"
+    ],
+    "tell": {
+      "required": [
+        "Changed / left alone"
+      ]
+    }
   },
   {
     "id": "creative-sprint",
@@ -41,18 +64,28 @@
     "context_policy": "Broad is fine: explore related patterns and alternatives, then converge on one.",
     "emoji": "🎨",
     "color": "#D6338A",
-    "text_color": "#FFFFFF"
+    "text_color": "#FFFFFF",
+    "guards": []
   },
   {
     "id": "careful-reviewer",
     "name": "Careful Reviewer",
     "tagline": "Read twice, comment once.",
-    "instructions": "Review without editing files unless asked. Check correctness, edge cases, error handling, security, and tests. Rank findings by severity and cite file and line. Separate must-fix from nice-to-have. Say what you did not check. Do not report style nits unless they hide a bug.",
+    "instructions": "You are read-only: edits and mutating commands are blocked. Review correctness, edge cases, error handling, security and tests. Rank findings by severity and cite file and line; separate must-fix from nice-to-have. Check each claim against the code before reporting it. End with \"Not checked:\" listing what you did not verify. Skip style nits unless they hide a bug.",
     "effort_hint": "high",
     "context_policy": "Read the full diff and the code around it; verify claims against the source before reporting.",
     "emoji": "🧐",
     "color": "#7A4DFF",
-    "text_color": "#FFFFFF"
+    "text_color": "#FFFFFF",
+    "guards": [
+      "read-only",
+      "require-tell"
+    ],
+    "tell": {
+      "required": [
+        "Not checked"
+      ]
+    }
   },
   {
     "id": "fast-prototype",
@@ -63,6 +96,7 @@
     "context_policy": "Read just enough to start; prefer building and running over further analysis.",
     "emoji": "⚡",
     "color": "#F5C400",
-    "text_color": "#14161B"
+    "text_color": "#14161B",
+    "guards": []
   }
 ]

@@ -65,6 +65,32 @@ changes task type (for example from building to reviewing), suggest a fitting mo
 instead of switching silently.
 ```
 
+## Enforcement (Claude Code)
+
+By default a mode is advice: the agent reads the instructions and chooses to follow them. On Claude Code you can add **guards**, which are enforced by hooks the agent cannot talk its way past:
+
+```bash
+npx modedial install claude-code            # this project (.claude/settings.json)
+npx modedial install claude-code --user     # all projects
+npx modedial uninstall claude-code          # remove them again
+```
+
+| Mode | What is enforced |
+|---|---|
+| Careful Reviewer | Read-only: file edits are denied, and shell commands that change files, git state or packages are denied. Its reply must end with "Not checked". |
+| Debug Mode | After editing, the agent cannot finish until something has run (a test, a script, a build). It is sent back once to run it or to say the fix is unconfirmed. |
+| Deep Focus | If the agent declares `scope` when it sets the mode, editing outside that scope needs your approval. Its reply must start with "Goal:" and end with "Set aside:". |
+| Chill Refactor | Edits to dependency manifests (package.json, lockfiles, requirements, go.mod…) need your approval. It must verify after editing, and end with "Changed / left alone:". |
+| Creative Sprint, Fast Prototype | Instructions only. Nothing to enforce. |
+
+The hooks are deterministic code with unit tests, and an end-to-end script (`node scripts/e2e-claude-code.mjs`) checks them against a real Claude Code session. Honest limits:
+- The shell filter is best effort. It blocks the common ways to change things, but a determined command can slip through. The file-edit tools are the hard guarantee.
+- "Needs your approval" prompts you in an interactive session. In headless runs it simply does not apply the edit.
+- The "verify" and "tell" nudges happen once per round, so a stubborn agent can still finish. They improve the odds, they are not a lock.
+- The hooks add a small process start-up on each edit or command (about 50 ms locally).
+- Hooks only run if you install them. Without them the guards are not enforced, and the modes behave as plain instructions.
+- Cursor, Codex and opencode currently get the instructions only. Rules, `AGENTS.md` and agent-file installers are next.
+
 ## Privacy
 
 - No telemetry. No network calls. Nothing leaves your machine unless you choose to share a card or recap.

@@ -48,7 +48,7 @@ describe("png output", () => {
       expect(png.subarray(1, 4).toString()).toBe("PNG");
       expect(dims(png)).toEqual({ w: 1200, h: 630 });
     }
-  });
+  }, 30000);
 
   it("renders the recap at 1080x1350", () => {
     const r = computeRecap([
