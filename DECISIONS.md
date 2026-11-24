@@ -68,3 +68,10 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 - **Result:** 48/48 runs passed with zero scope violations in every condition (ceiling effect), so H2 and H3 are untested, not confirmed or refuted. Modes cost about 9–34% more per run than no mode on these tasks. Written up in `bench/RESULTS.md`.
 - **No claims change.** The site, README and posts still make no performance claim.
 - **Next:** harder tasks the baseline can fail, committed before running. Part B (opt-in telemetry) stays on hold behind the "no backend" rule.
+
+## 2026-11-24 · Phase 5 pilot 2 result
+- **150 valid runs** (haiku and sonnet, 75 each), $5.30. Written up in `bench/RESULTS2.md` against the pre-registered hypotheses.
+- **No support for H2′, H3′ or H1.** A one-line generic prompt did as well as the modes everywhere (H5 supported). The only scope violation in 150 runs was one no-mode sonnet run. Review tasks hit a ceiling; the `memo` task was a floor (0/40 hidden passes in every condition).
+- **Modes cost more:** roughly 10 to 60% more cost and up to about 60% more turns, with no measured benefit.
+- **Process notes:** three amendments to the pre-registration were logged (short-path edit block, unquoted config path, interrupted run). The invalid first launch (150 errored runs, no model output) is archived and excluded. Haiku's `||` bug was found in all review replies but under-counted by the keyword pattern.
+- **Claims unchanged:** still no performance claim anywhere. Part B (telemetry/backend) is not justified by this result and stays on hold.
