@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir as _tmpdir } from "node:os";
-// Use the long resolved temp path: Windows 8.3 short names (MAYANK~1) trigger a permission block on edits.
+// Use the long resolved temp path: Windows 8.3 short names (USERNAME~1) trigger a permission block on edits.
 import { realpathSync } from "node:fs";
 const tmpdir = () => realpathSync.native(_tmpdir());
 import { dirname, join, relative, resolve } from "node:path";
