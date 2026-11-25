@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>modedial: replay of a recorded Claude Code session</title>
+<script src="../../site/modes-data.js"></script>
+<style>
+@font-face{font-family:"JetBrains Mono";font-weight:500;src:url(../../site/fonts/JetBrainsMono_500Medium.ttf) format("truetype")}
+@font-face{font-family:"JetBrains Mono";font-weight:700;src:url(../../site/fonts/JetBrainsMono_700Bold.ttf) format("truetype")}
+@font-face{font-family:"Bricolage Grotesque";font-weight:800;src:url(../../site/fonts/BricolageGrotesque_800ExtraBold.ttf) format("truetype")}
+@font-face{font-family:"Instrument Sans";font-weight:600;src:url(../../site/fonts/InstrumentSans_600SemiBold.ttf) format("truetype")}
+:root{--bg:#0E1015;--panel:#14161B;--line:#2A2F3A;--fg:#E8EBF2;--dim:#8B93A5;--tape:#FF8A3D;--on:#14161B;--red:#FF6B6B;--green:#5AD19A}
+*{box-sizing:border-box}
+html,body{margin:0;width:1280px;height:720px;overflow:hidden;background:var(--bg);color:var(--fg);font:500 15px/1.5 "JetBrains Mono",ui-monospace,Consolas,monospace}
+.stage{width:1280px;height:720px;padding:26px 40px;display:flex;flex-direction:column;gap:14px}
+.cap{display:flex;align-items:center;justify-content:space-between;gap:20px;height:46px}
+.cap h1{margin:0;font:800 28px/1 "Bricolage Grotesque",sans-serif;letter-spacing:-.02em;color:var(--fg)}
+.cap .n{font:700 12px/1 "JetBrains Mono",monospace;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.badge{font:700 11px/1 "JetBrains Mono",monospace;letter-spacing:.1em;text-transform:uppercase;border:1.5px solid var(--dim);color:var(--dim);padding:7px 10px;border-radius:4px;white-space:nowrap}
+.term{flex:1;min-height:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 30px 60px -30px #000}
+.bar{display:flex;justify-content:space-between;padding:10px 16px;border-bottom:1px solid var(--line);color:var(--dim);font-size:12px}
+.log{flex:1;min-height:0;padding:16px 20px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:9px}
+.row{animation:in .25s both;white-space:pre-wrap;word-break:break-word}
+@keyframes in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.user{color:var(--fg)}.user b{color:var(--tape)}
+.agent{color:var(--fg);padding-left:14px;border-left:3px solid var(--line);font-family:"Instrument Sans",sans-serif;font-weight:600;font-size:16px;line-height:1.45}
+.agent b{color:#fff}.agent code{font:500 14px "JetBrains Mono",monospace;background:#232834;padding:1px 5px;border-radius:3px}
+.tool{color:var(--dim)}.tool .dot{color:var(--green)}.tool .nm{color:var(--fg)}
+.res{color:var(--dim);padding-left:18px;font-size:13px}
+.res.err{color:var(--red)}
+.tape{display:inline-block;background:var(--c);color:var(--o);font:700 11px/1 "JetBrains Mono",monospace;letter-spacing:.09em;text-transform:uppercase;padding:4px 8px;border-radius:3px;margin-left:8px;vertical-align:1px}
+.block{border:2px solid var(--red);background:#2A1518;border-radius:6px;padding:10px 14px;color:#FFD9D9;margin-left:18px;font-size:14px}
+.block .lab{display:block;font:700 11px/1 "JetBrains Mono",monospace;letter-spacing:.12em;color:var(--red);margin-bottom:6px}
+.done{color:var(--green);font-size:13px}
+.status{display:flex;align-items:center;gap:12px;padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--dim)}
+.status .tape{margin:0}
+.end{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:16px;padding:0 120px;opacity:0;transition:opacity .5s}
+.end.on{opacity:1}.end h2{margin:0;font:800 54px/1.05 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em}
+.end p{margin:0;font:600 18px/1.5 "Instrument Sans",sans-serif;color:var(--dim);max-width:900px}
+.end code{font:700 18px "JetBrains Mono",monospace;color:var(--fg);background:#232834;padding:8px 12px;border-radius:5px}
+.intro{position:absolute;inset:0;background:var(--bg);display:flex;flex-direction:column;justify-content:center;gap:12px;padding:0 120px;opacity:0;transition:opacity .35s;pointer-events:none}
+.intro.on{opacity:1}.intro .n{font:700 13px/1 "JetBrains Mono",monospace;letter-spacing:.16em;color:var(--dim)}.intro h2{margin:0;font:800 50px/1.05 "Bricolage Grotesque",sans-serif;letter-spacing:-.03em;max-width:1000px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="cap"><div><div class="n" id="scn">scene</div><h1 id="ttl"></h1></div><div class="badge">Real session · replayed from a recorded event log</div></div>
+  <div class="term">
+    <div class="bar"><span>claude  ·  ~/my-app</span><span id="meta"></span></div>
+    <div class="log" id="log"></div>
+    <div class="status"><span>mode:</span><span id="mode">none</span><span style="margin-left:auto">hooks: installed with <b>modedial install claude-code</b></span></div>
+  </div>
+</div>
+<div class="intro" id="intro"><div class="n" id="in-n"></div><h2 id="in-t"></h2></div>
+<div class="end" id="end"></div>
+<script>
+const $ = (id) => document.getElementById(id);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const md = (s) => esc(s).replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>").replace(/`([^`]+)`/g, "<code>$1</code>");
+const modes = Object.fromEntries((window.MODEDIAL_MODES || []).map((m) => [m.id, m]));
+const marks = (window.__marks = []);
+const mark = (name) => marks.push({ name, epoch: Date.now() });
+const log = $("log");
+const add = (html, cls) => { const d = document.createElement("div"); d.className = "row " + (cls || ""); d.innerHTML = html; log.appendChild(d); while (log.scrollHeight > log.clientHeight + 4 && log.children.length > 1) log.removeChild(log.firstChild); return d; };
+const tape = (id) => { const m = modes[id]; return m ? `<span class="tape" style="--c:${m.color};--o:${m.text_color}">${esc(m.name)}</span>` : ""; };
+const clip = (s, n) => (s.length <= n ? s : s.slice(0, s.lastIndexOf(". ", n) > n * 0.5 ? s.lastIndexOf(". ", n) + 1 : n).trimEnd() + " …");
+// Long replies are shortened for the screen, but a mode's closing signature line ("Not checked:", "Set aside:") is kept,
+// because showing that line is the point of the scene.
+function clipKeepTell(s) {
+  if (s.length <= 560) return s;
+  const i = s.search(/Not checked|Set aside|Changed \/ left alone/i);
+  return i > 200 ? clip(s, 330) + "\n\n… " + clip(s.slice(i), 210) : clip(s, 560);
+}
+const textOf = (c) => (typeof c === "string" ? c : Array.isArray(c) ? c.map((b) => (b.type === "text" ? b.text : "")).join("\n") : "");
+
+function setMode(id) {
+  const m = modes[id]; if (!m) return;
+  document.documentElement.style.setProperty("--tape", m.color); document.documentElement.style.setProperty("--on", m.text_color);
+  $("mode").innerHTML = tape(id);
+}
+
+function toolLine(b) {
+  const n = b.name.replace("mcp__modedial__", "modedial.");
+  let args = "";
+  const i = b.input || {};
+  if (n === "modedial.set_mode") args = `"${i.id ?? i.mode ?? ""}"${i.scope ? `, scope: ${JSON.stringify(i.scope)}` : ""}`;
+  else if (n.startsWith("modedial.")) args = "";
+  else if (i.file_path) args = i.file_path;
+  else if (i.command) args = i.command;
+  else if (i.pattern) args = i.pattern;
+  else args = JSON.stringify(i);
+  const badge = n === "modedial.set_mode" && modes[i.id] ? tape(i.id) : "";
+  return `<span class="dot">●</span> <span class="nm">${esc(n)}</span>(${esc(clip(String(args), 96))})${badge}`;
+}
+
+function resultRow(b, lastTool) {
+  const t = textOf(b.content).replace(/\r/g, "").trim();
+  if (b.is_error && /hook error/i.test(t)) {
+    add(`<span class="lab">BLOCKED BY A HOOK, NOT BY THE MODEL</span>${esc(t.replace(/^PreToolUse:\w+ hook error:\s*/i, ""))}`, "block");
+    mark("denial"); return;
+  }
+  let lines = t.split("\n").filter(Boolean);
+  if (lastTool === "modedial.set_mode") {
+    const g = lines.find((l) => /^Guards/.test(l));
+    lines = [lines[0], ...(g ? [g.replace(/\s*\(.*?\)/, "")] : [])];
+  } else if (lastTool === "modedial.list_modes") lines = [`${lines.length} modes listed`];
+  const shown = lines.slice(0, 2).map((l) => clip(l.replace(/^\s*\d+\s/, ""), 104));
+  const more = lines.length > 2 ? `  … +${lines.length - 2} lines` : "";
+  add("⎿ " + esc(shown.join("\n   ")) + more, "res" + (b.is_error ? " err" : ""));
+}
+
+async function typePrompt(p) {
+  const d = add(`<b>&gt;</b> <span id="typed"></span>`, "user");
+  const el = d.querySelector("#typed"); el.removeAttribute("id");
+  for (const ch of p) { el.textContent += ch; await sleep(20); }
+  await sleep(500);
+}
+
+async function scene(sc, i, n) {
+  log.innerHTML = ""; $("mode").textContent = "none"; document.documentElement.style.setProperty("--tape", "#FF8A3D"); document.documentElement.style.setProperty("--on", "#14161B");
+  $("scn").textContent = `scene ${i + 1} of ${n}`; $("ttl").textContent = sc.title;
+  $("in-n").textContent = `SCENE ${i + 1} OF ${n}`; $("in-t").textContent = sc.title;
+  $("intro").classList.add("on"); mark("scene-" + sc.id); await sleep(1700); $("intro").classList.remove("on"); await sleep(400);
+  await typePrompt(sc.prompt);
+  const hidden = new Set(); const toolName = {}; let prev = 0;
+  for (const { t, e } of sc.events) {
+    if (e.type === "assistant") {
+      for (const b of e.message.content) {
+        if (b.type === "tool_use") {
+          if (b.name === "ToolSearch") { hidden.add(b.id); continue; }
+          await sleep(Math.min(Math.max((t - prev) * 0.5, 350), 1500)); prev = t;
+          toolName[b.id] = b.name.replace("mcp__modedial__", "modedial."); add(toolLine(b), "tool");
+        } else if (b.type === "text" && b.text.trim()) {
+          await sleep(Math.min(Math.max((t - prev) * 0.5, 350), 1500)); prev = t;
+          const shown = clipKeepTell(b.text.trim());
+          add(md(shown), "agent"); await sleep(Math.min(5200, 800 + shown.length * 16));
+        }
+      }
+    } else if (e.type === "user") {
+      for (const b of e.message.content || []) {
+        if (b.type !== "tool_result" || hidden.has(b.tool_use_id)) continue;
+        await sleep(Math.min(Math.max((t - prev) * 0.5, 250), 1100)); prev = t;
+        resultRow(b, toolName[b.tool_use_id]);
+        if (toolName[b.tool_use_id] === "modedial.set_mode") { const m = /Mode set: \S+ ([^—]+) —/.exec(textOf(b.content)); const id = Object.keys(modes).find((k) => m && modes[k].name === m[1].trim()); if (id) setMode(id); }
+        if (b.is_error && /hook error/i.test(textOf(b.content))) await sleep(2600);
+      }
+    } else if (e.type === "result") {
+      await sleep(600);
+      add(`✓ done · ${e.num_turns} turns · $${(e.total_cost_usd ?? 0).toFixed(2)}`, "done");
+    }
+  }
+  await sleep(2400);
+}
+
+async function main() {
+  const d = window.__DATA; $("meta").textContent = `model: ${d.model} · recorded ${d.recordedAt}`;
+  for (let i = 0; i < d.scenes.length; i++) await scene(d.scenes[i], i, d.scenes.length);
+  $("end").innerHTML = `<h2>Real tool calls. Real replies.<br>A guard that actually blocks.</h2><p>Recorded from three real Claude Code sessions (${esc(d.model)}, ${esc(d.recordedAt)}) with the modedial hooks installed. Pauses were shortened, internal tool-loading steps hidden, and long replies trimmed. Nothing was typed in by hand.</p><code>npm install -g modedial &amp;&amp; modedial install claude-code</code>`;
+  $("end").classList.add("on"); mark("end"); await sleep(4200); window.__done = true;
+}
+addEventListener("load", () => { document.fonts.ready.then(() => main()); });
+</script>
+</body>
+</html>

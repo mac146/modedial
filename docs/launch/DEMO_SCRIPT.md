@@ -1,4 +1,4 @@
-> **Update:** a Playwright recording of the landing page now exists in `docs/launch/demo/` (see `tools/demo-recorder/README.md`). It is a tour of the website and its illustrative transcripts. The clip described below, a real agent session, is still separate and still needs recording.
+> **Update:** two clips now exist in `docs/launch/demo/`. (1) A Playwright tour of the website, whose transcripts are illustrative. (2) A replay of three REAL Claude Code sessions, including a hook blocking an edit (`modedial-real-session.mp4`, and the 26 s `modedial-guard-moment.mp4`). The second is a replay of recorded events in our own page, not a live capture of the Claude Code terminal; caption it that way. The live-terminal clip described below is still optional.
 
 # Demo clip script (about 25 seconds)
 

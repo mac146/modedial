@@ -10,6 +10,12 @@ Named **modes** for coding agents, as a tiny MCP server. Switch your agent betwe
 
 [Watch the 56-second tour of the site](docs/launch/demo/modedial-site-tour.mp4). It shows the page with its illustrative transcripts, not a real agent session.
 
+**A real session:** three recorded Claude Code runs with the hooks installed. In the last one the agent is told to edit a file in Careful Reviewer mode, and the hook blocks it.
+
+[![The Edit tool is blocked by a hook in Careful Reviewer mode](docs/launch/demo/modedial-guard-poster.png)](docs/launch/demo/modedial-guard-moment.mp4)
+
+[26 s: the guard](docs/launch/demo/modedial-guard-moment.mp4) · [83 s: all three scenes](docs/launch/demo/modedial-real-session.mp4). Replayed from the recorded event log (pauses shortened, long replies trimmed, internal tool-loading steps hidden). Re-create it with `tools/demo-recorder`.
+
 <p>
   <img src="docs/examples/card-debug.png" alt="Mode card for Debug Mode" width="49%">
   <img src="docs/examples/card-deep-focus.png" alt="Mode card for Deep Focus" width="49%">

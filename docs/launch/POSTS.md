@@ -116,6 +116,11 @@ If this gets no use, I'll say so and move on. Feedback on the modes, or on wheth
 
 ---
 
+## Which clip to attach (and how to caption it)
+- **Best:** `docs/launch/demo/modedial-guard-moment.mp4` (26 s). Caption: "Real Claude Code session with the modedial hooks installed. Told to edit a file in Careful Reviewer mode, the agent tries, and a hook blocks it. Replayed from the recorded event log, pauses shortened."
+- **Longer:** `modedial-real-session.mp4` (83 s, three scenes).
+- **Site tour:** `modedial-site-tour.mp4` or `modedial-printer-loop.gif` show the website and its illustrative transcripts. Never describe them as a real agent session.
+
 ## Notes before posting
 - Post one platform at a time and reply fast in the first few hours.
 - HN: no asking friends to upvote. Weekday morning, US time.

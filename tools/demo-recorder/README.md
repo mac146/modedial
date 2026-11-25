@@ -20,3 +20,17 @@ Output goes to `docs/launch/demo/`:
 It drives Microsoft Edge (`channel: "msedge"`), so no browser download is needed on Windows. On macOS or Linux change the channel to `chrome`, or run `npx playwright install chromium` and remove the channel. Playwright does not draw the mouse pointer, so the script injects a visible cursor and click ripples.
 
 **This is a tour of the website.** The transcripts on the page are labelled "illustrative", and so is this clip. It is not a recording of a real agent session. The real-session clip is described in `docs/launch/DEMO_SCRIPT.md`.
+
+## The real-session clip
+
+Two more scripts make a clip of REAL Claude Code sessions with the modedial hooks installed:
+
+```bash
+node capture-session.mjs sonnet   # runs 3 real `claude -p` sessions, saves captured/sessions.json (a few cents)
+node scrub.mjs captured/sessions.json   # removes local paths and names; capture does this too
+node record-session.mjs           # replays the log in replay.html and records it with Playwright
+```
+
+`capture-session.mjs` stores every event the agent emits, with its real arrival time. `replay.html` plays those events back in a terminal-style page: real tool calls, real results, real replies, and the real hook denial. What is edited for the screen, and stated on the clip itself: pauses are shortened, internal tool-loading steps (`ToolSearch`) are hidden, and long replies are trimmed (the mode's closing line, for example `Not checked:`, is always kept). Nothing is typed in by hand. `record-session.mjs` refuses to run if the captured data still contains a local path or name.
+
+What the recording does NOT show: Claude Code's own terminal UI. It is a replay of the recorded events in our own page. Say so when you post it.
