@@ -11,7 +11,7 @@ Success criteria, judged 2 weeks after public launch (decided up front, not to b
 - **We have no telemetry**, by design. We can't see usage beyond what is public. That means no active-user figure, and we shouldn't claim one.
 
 ## Status
-Not launched. Pre-launch steps are in `docs/launch/CHECKLIST.md`; drafts are in `docs/launch/POSTS.md`.
+Not announced yet. Technically live: npm `modedial@0.1.2` (2026-11-25, verified on the real registry; 0.1.0 and 0.1.1 deprecated), repo public, site at https://modedial-site.vercel.app/. Still to do: demo clip, then the posts in `docs/launch/POSTS.md` (one platform at a time). Pre-launch steps: `docs/launch/CHECKLIST.md`.
 
 ## Daily log
 

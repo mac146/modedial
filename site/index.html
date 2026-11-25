@@ -231,6 +231,7 @@ kbd { font: 700 .7rem/1 var(--mono); border: 1px solid var(--ink-2); border-bott
 footer { display: flex; flex-wrap: wrap; gap: .6rem 1.5rem; justify-content: space-between; padding-block: 2rem 2.5rem; color: var(--ink-2); font-size: .88rem; }
 
 @media (max-width: 860px) {
+  .cmdrow code { white-space: normal; overflow-wrap: anywhere; }
   .gcards, .proof { grid-template-columns: minmax(0, 1fr); }
   .hero-grid, .picker, .maker, .two, .steps { grid-template-columns: minmax(0, 1fr); }
   .rcard { aspect-ratio: auto; min-height: 30rem; }

@@ -125,3 +125,7 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 - **modedial@0.1.2 is live** (published by the founder). Verified on the real registry with `npm run verify:published` (the 26-check rehearsal in public mode): 26/26 on the repeat runs. The first run, minutes after publishing, failed 14 checks while npm was still propagating the version; a plain `npx -y modedial@0.1.2 list` worked at the same moment. The check now waits until the tarball is downloadable.
 - **Still on the registry with the bug:** 0.1.0 (npx hooks ~3.4 s per call) and 0.1.1 (installer could write a hook command that cannot start). To be deprecated with a pointer to 0.1.2 (needs the founder's 2FA).
 - Site now says how to switch on the Claude Code guards (global install, then `modedial install claude-code`).
+
+## 2026-11-25 · Old versions deprecated, site checked on a phone
+- **0.1.0, 0.1.1 and the 0.0.0-stage placeholder are deprecated** on npm with a pointer to 0.1.2 (confirmed with `npm view`). `latest` is 0.1.2 and is not deprecated.
+- **Live site checked at phone width in light and dark** (headless Edge, 500 px): single column, no horizontal scroll, stickers fit, dark mode legible. One fix: install commands now wrap on small screens instead of clipping.
