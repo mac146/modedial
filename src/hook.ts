@@ -1,6 +1,7 @@
 import { closeSync, openSync, readSync, statSync } from "node:fs";
 import { evaluatePreToolUse, evaluateStop, emptyState, updateAfterTool, type SessionState } from "./guards.js";
-import { findMode, type Mode } from "./modes.js";
+import { findMode } from "./modesLight.js";
+import type { Mode } from "./modes.js";
 import { pruneOldSessions, readState, writeState } from "./session.js";
 
 /** Subset of the Claude Code hook payload we use. Unknown fields are ignored. */
@@ -88,7 +89,7 @@ export function runHook(event: HookEvent, input: HookInput, opts: { base: string
     }
     if (!mode) return null;
     const next = updateAfterTool(state, tool, input.tool_input);
-    if (next.dirty !== state.dirty || next.verified !== state.verified || next.editedFiles.length !== state.editedFiles.length) writeState(opts.base, sid, next);
+    if (next.dirty !== state.dirty || next.verified !== state.verified || next.edits !== state.edits) writeState(opts.base, sid, next);
     return null;
   }
 

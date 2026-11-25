@@ -17,14 +17,15 @@ export interface SessionState {
   dirty: boolean;
   /** Something ran after the most recent edit. */
   verified: boolean;
-  editedFiles: string[];
+  /** Number of edits this session. Only a count: no file names are stored. */
+  edits: number;
   stopBlocks: number;
   tellBlocks: number;
 }
 
 export const emptyState = (): SessionState => ({
   v: 1, mode: null, scope: [], startedAt: new Date().toISOString(),
-  dirty: false, verified: false, editedFiles: [], stopBlocks: 0, tellBlocks: 0,
+  dirty: false, verified: false, edits: 0, stopBlocks: 0, tellBlocks: 0,
 });
 
 const WRITE_TOOLS = new Set(["Edit", "Write", "MultiEdit", "NotebookEdit"]);
@@ -111,13 +112,12 @@ export function evaluatePreToolUse(
 
 /** Track edits and verification after each tool call. Returns a new state. */
 export function updateAfterTool(state: SessionState, tool: string, input: Record<string, unknown> | undefined): SessionState {
-  const s = { ...state, editedFiles: [...state.editedFiles] };
+  const s = { ...state };
   if (isWriteTool(tool)) {
     s.dirty = true;
     s.verified = false;
     s.stopBlocks = 0;
-    const p = toolPath(input);
-    if (p && !s.editedFiles.includes(p) && s.editedFiles.length < 50) s.editedFiles.push(p);
+    s.edits = Math.min(state.edits + 1, 1_000_000);
   } else if (tool === "Bash" && s.dirty && typeof input?.command === "string" && isVerifyCommand(input.command)) {
     s.verified = true;
   }

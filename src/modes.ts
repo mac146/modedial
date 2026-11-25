@@ -37,9 +37,7 @@ export function loadModes(): Mode[] {
   return modes;
 }
 
-export function findMode(modes: Mode[], id: string): Mode | undefined {
-  return modes.find((m) => m.id === id.trim().toLowerCase());
-}
+export { findMode } from "./modesLight.js";
 
 /** What the agent receives when a mode is set. */
 export function formatModeBundle(m: Mode): string {

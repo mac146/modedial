@@ -96,3 +96,9 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 ## 2026-11-24 · Landing page updated for guards and installers
 - `site/index.html` now loads mode data from the generated `site/modes-data.js` (run `node scripts/build-site.mjs` after editing `modes/modes.json`), so instructions, guards and colors cannot drift from the product. New section "Some modes have rules the agent can't break" with an honest enforced / rules-only / how-we-know split. The mode panel shows each mode's guards, and its footnote no longer implies the old behavior check covers the new wording.
 - Private preview republished as the same artifact (Version 4). Launch posts updated to lead with enforced guards and the 12-agent installer, with verification levels stated.
+
+## 2026-11-25 · Launch-readiness audit
+- **Clean-room test** (pack, install tarball in an empty folder, use it): list, install, MCP over stdio, card export, hook deny/allow all pass (`scripts/smoke-pack.mjs`, also run in CI).
+- **Found and fixed before launch:** (1) hooks took ~1.2 s per call because the CLI eagerly loaded the MCP SDK, zod and the native renderer. Now every command loads lazily and the hook path imports only light modules (`src/modesLight.ts`); median per call fell to ~460 ms where bare Node start-up on this Windows machine is ~360 ms. A test fails if heavy imports return. (2) README claimed file paths are never stored, but hook session state stored edited file names. It now stores only an edit count; a test asserts no file names or command text are saved; the README privacy section discloses the remaining state (mode id, declared scope, flags, deleted after 7 days). (3) README had stale installer lines and a wrong latency figure.
+- **Added:** GitHub Actions CI (3 OSes x Node 20/22), package.json homepage/bugs, hook output flushes before exit.
+- **Re-verified** against a real Claude Code session after the refactor: 3/3.

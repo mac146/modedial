@@ -87,9 +87,9 @@ The hooks are deterministic code with unit tests, and an end-to-end script (`nod
 - The shell filter is best effort. It blocks the common ways to change things, but a determined command can slip through. The file-edit tools are the hard guarantee.
 - "Needs your approval" prompts you in an interactive session. In headless runs it simply does not apply the edit.
 - The "verify" and "tell" nudges happen once per round, so a stubborn agent can still finish. They improve the odds, they are not a lock.
-- The hooks add a small process start-up on each edit or command (about 50 ms locally).
+- Each hook is a short Node process. On the Windows machine this was measured on, where Node itself takes about 360 ms to start, a hook added roughly 100 ms per edit or command. Expect less on a faster setup.
 - Hooks only run if you install them. Without them the guards are not enforced, and the modes behave as plain instructions.
-- Cursor, Codex and opencode currently get the instructions only. Rules, `AGENTS.md` and agent-file installers are next.
+- Other agents have their own installers (see the table below). Enforcement is real on Claude Code, opencode and Roo Code modes. Elsewhere the guards are written into the mode as plain rules.
 
 ## Setup for every agent
 
@@ -121,7 +121,8 @@ Where an agent cannot enforce a guard, `install` writes it into the mode as an e
 ## Privacy
 
 - No telemetry. No network calls. Nothing leaves your machine unless you choose to share a card or recap.
-- The local log records only: schema version, timestamp, event (`set`/`end`), mode id, and a random per-run session id. Never code, prompts, file paths or file contents.
+- The local log records only: schema version, timestamp, event (`set`/`end`), mode id, and a random per-run session id. Never code, prompts, command text, file contents or the names of files that were edited.
+- If you install the Claude Code hooks, a small per-session state file (`sessions/<id>.json` in the same folder) holds the active mode id, any scope you declared for Deep Focus (the file or folder names you chose to name), an edit count and a few flags. It is deleted after 7 days and never uploaded.
 - Location: `%APPDATA%\modedial` (Windows), `~/Library/Application Support/modedial` (macOS), `$XDG_DATA_HOME/modedial` or `~/.local/share/modedial` (Linux). Override with `MODEDIAL_HOME`. Disable logging with `MODEDIAL_NO_LOG=1`.
 - Modes are static and bundled in the package. They are never fetched from the network.
 

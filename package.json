@@ -47,5 +47,9 @@
     "@types/node": "^22.0.0",
     "typescript": "^5.9.0",
     "vitest": "^3.2.0"
+  },
+  "homepage": "https://github.com/mac146/modedial#readme",
+  "bugs": {
+    "url": "https://github.com/mac146/modedial/issues"
   }
 }
