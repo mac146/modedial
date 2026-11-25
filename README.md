@@ -4,7 +4,11 @@ Named **modes** for coding agents, as a tiny MCP server. Switch your agent betwe
 
 > Status: v0.1.x, new. Smoke-tested with Claude Code, Codex CLI and opencode ([details](docs/agent-tests/README.md)). Cursor is untested.
 
-<!-- TODO: add the demo GIF/MP4 here after recording (see docs/launch/DEMO_SCRIPT.md) -->
+<p>
+  <img src="docs/launch/demo/modedial-printer-loop.gif" alt="The modedial label printer: pressing a mode key prints its tape and the transcript changes" width="640">
+</p>
+
+[Watch the 56-second tour of the site](docs/launch/demo/modedial-site-tour.mp4). It shows the page with its illustrative transcripts, not a real agent session.
 
 <p>
   <img src="docs/examples/card-debug.png" alt="Mode card for Debug Mode" width="49%">

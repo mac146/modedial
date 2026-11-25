@@ -1,3 +1,5 @@
+> **Update:** a Playwright recording of the landing page now exists in `docs/launch/demo/` (see `tools/demo-recorder/README.md`). It is a tour of the website and its illustrative transcripts. The clip described below, a real agent session, is still separate and still needs recording.
+
 # Demo clip script (about 25 seconds)
 
 Goal: show an agent switching modes in a real session, and the card at the end. **Record real output. Do not mock the agent's replies.** The landing page's printer animation is an illustration; this clip is the evidence.

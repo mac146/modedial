@@ -129,3 +129,8 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 ## 2026-11-25 · Old versions deprecated, site checked on a phone
 - **0.1.0, 0.1.1 and the 0.0.0-stage placeholder are deprecated** on npm with a pointer to 0.1.2 (confirmed with `npm view`). `latest` is 0.1.2 and is not deprecated.
 - **Live site checked at phone width in light and dark** (headless Edge, 500 px): single column, no horizontal scroll, stickers fit, dark mode legible. One fix: install commands now wrap on small screens instead of clipping.
+
+## 2026-11-25 · Demo recorded with Playwright
+- **`tools/demo-recorder`** (own package, pinned Playwright 1.64.1 and ffmpeg-static 5.3.0, drives installed Edge, not part of the published package or CI) records the live site. Playwright draws no mouse pointer, so the script injects a cursor and click ripples.
+- **Outputs** in `docs/launch/demo/`: `modedial-site-tour.mp4` (55.8 s, 3.3 MB), `modedial-printer-loop.mp4` (11 s, 0.6 MB) and `.gif` (0.75 MB, used in the README), and a poster frame. The first take was 106 s and an 11.5 MB GIF, so pacing was tightened and the GIF limited to the printer segment.
+- **Honesty:** this is a tour of the website with its transcripts labelled "illustrative". It is not a real agent session. The real-session clip in `DEMO_SCRIPT.md` is still to be recorded, and the posts should say which clip is which.

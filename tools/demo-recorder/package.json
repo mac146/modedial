@@ -1,0 +1,11 @@
+{
+  "name": "modedial-demo-recorder",
+  "private": true,
+  "type": "module",
+  "description": "Records a screen capture tour of the landing page with Playwright. Not part of the published package.",
+  "scripts": { "record": "node record.mjs" },
+  "dependencies": {
+    "ffmpeg-static": "5.3.0",
+    "playwright": "1.64.1"
+  }
+}
