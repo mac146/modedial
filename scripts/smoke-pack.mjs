@@ -26,7 +26,8 @@ try {
   const proj = join(work, "proj");
   mkdirSync(proj);
   run("npm", ["init", "-y"], { cwd: proj });
-  const inst = run("npm", ["install", `"${tgz}"`], { cwd: proj });
+  // Quote only when a shell is involved (Windows runs npm through cmd); elsewhere quotes would become part of the file name.
+  const inst = run("npm", ["install", sh ? `"${tgz}"` : tgz], { cwd: proj });
   check("npm install of the packed tarball", inst.status === 0, inst.stderr.slice(0, 300));
 
   const home = join(work, "home");
