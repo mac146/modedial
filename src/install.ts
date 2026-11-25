@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
@@ -9,10 +10,31 @@ export const MARKER = "--modedial";
 type HookEntry = { matcher?: string; hooks: { type: string; command: string; timeout?: number }[] };
 type Settings = { hooks?: Record<string, HookEntry[]>; [k: string]: unknown };
 
-/** How the hooks call modedial. A stable absolute path when installed locally, npx when run through it. */
+const isNpxCache = (cliPath: string): boolean => /[\\/](_npx|npx-cache)[\\/]/i.test(cliPath);
+
+/**
+ * How the hooks call modedial. They run on every edit and shell command, so start-up time matters:
+ * measured on the published package, `npx -y modedial hook` costs about 3.4 s per call while a
+ * global `modedial` costs about 0.1 s. So when we are running through npx we refuse to write npx
+ * hooks, and use the global command if there is one. (A path into the npx cache is not an option:
+ * it can be cleaned up, and a hook that cannot start silently turns the guards off.)
+ */
+export function resolveHookPrefix(cliPath: string, hasGlobalBin: () => boolean): string {
+  const cli = cliPath.replace(/\\/g, "/");
+  if (!isNpxCache(cli)) return `node "${cli}"`;
+  if (hasGlobalBin()) return "modedial";
+  throw new Error(
+    "The hooks run on every edit and need a fast start. Through npx each call would take seconds.\n" +
+      "Install modedial globally, then run the installer again:\n  npm install -g modedial\n  modedial install claude-code",
+  );
+}
+
+function globalBinExists(): boolean {
+  return spawnSync(process.platform === "win32" ? "where" : "which", ["modedial"], { encoding: "utf8" }).status === 0;
+}
+
 export function hookCommandPrefix(): string {
-  const cli = join(dirname(fileURLToPath(import.meta.url)), "cli.js").replace(/\\/g, "/");
-  return /[\\/](_npx|npx-cache)[\\/]/i.test(cli) ? "npx -y modedial" : `node "${cli}"`;
+  return resolveHookPrefix(join(dirname(fileURLToPath(import.meta.url)), "cli.js"), globalBinExists);
 }
 
 const WRITE_TOOLS = "Edit|Write|MultiEdit|NotebookEdit";

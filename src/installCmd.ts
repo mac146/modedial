@@ -39,7 +39,14 @@ export function runInstall(cmd: "install" | "uninstall", args: string[], env: In
   for (const agent of agents) {
     out.push(`\n== ${agent}`);
     if (agent === "claude-code") {
-      const r = applyClaudeCode({ scope, cwd: env.cwd, home, dryRun, remove: cmd === "uninstall" });
+      let r;
+      try {
+        r = applyClaudeCode({ scope, cwd: env.cwd, home, dryRun, remove: cmd === "uninstall" });
+      } catch (e) {
+        if (agents.length === 1) throw e;
+        out.push("  skipped: " + (e as Error).message.split("\n").join("\n  "));
+        continue;
+      }
       out.push(`  ${dryRun ? "would update" : cmd === "install" ? "updated" : "cleaned"} ${r.path}`);
       out.push("  enforcement: real, via hooks (read-only reviewer, verify-before-finish, scope lock, manifest guard, required tells)");
       if (cmd === "install") out.push("  MCP server: claude mcp add modedial -- npx -y modedial");

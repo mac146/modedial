@@ -1,6 +1,6 @@
 {
   "name": "modedial",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Named modes for coding agents, as an MCP server. Switch focus, debug, review and more with one call.",
   "type": "module",
   "bin": {

@@ -2,7 +2,7 @@
 
 Named **modes** for coding agents, as a tiny MCP server. Switch your agent between things like *Deep Focus*, *Debug Mode* or *Fast Prototype* with one call, and get a shareable card and a local recap.
 
-> Status: pre-release, not yet on npm. Smoke-tested with Claude Code, Codex CLI and opencode ([details](docs/agent-tests/README.md)). Cursor is untested.
+> Status: v0.1.x, new. Smoke-tested with Claude Code, Codex CLI and opencode ([details](docs/agent-tests/README.md)). Cursor is untested.
 
 <!-- TODO: add the demo GIF/MP4 here after recording (see docs/launch/DEMO_SCRIPT.md) -->
 
@@ -25,7 +25,7 @@ Every mode switch makes a card like these, drawn locally. The sample images are 
 
 ## Install
 
-Requires Node 20+. Once published, the server runs with `npx -y modedial`.
+Requires Node 20+. The server runs with `npx -y modedial`.
 
 **Claude Code**
 ```bash
@@ -70,9 +70,10 @@ instead of switching silently.
 By default a mode is advice: the agent reads the instructions and chooses to follow them. On Claude Code you can add **guards**, which are enforced by hooks the agent cannot talk its way past:
 
 ```bash
-npx modedial install claude-code            # this project (.claude/settings.json)
-npx modedial install claude-code --user     # all projects
-npx modedial uninstall claude-code          # remove them again
+npm install -g modedial                    # hooks run on every edit, so install globally (fast start)
+modedial install claude-code               # this project (.claude/settings.json)
+modedial install claude-code --user        # all projects
+modedial uninstall claude-code              # remove them again
 ```
 
 | Mode | What is enforced |
@@ -87,7 +88,7 @@ The hooks are deterministic code with unit tests, and an end-to-end script (`nod
 - The shell filter is best effort. It blocks the common ways to change things, but a determined command can slip through. The file-edit tools are the hard guarantee.
 - "Needs your approval" prompts you in an interactive session. In headless runs it simply does not apply the edit.
 - The "verify" and "tell" nudges happen once per round, so a stubborn agent can still finish. They improve the odds, they are not a lock.
-- Each hook is a short Node process. On the Windows machine this was measured on, where Node itself takes about 360 ms to start, a hook added roughly 100 ms per edit or command. Expect less on a faster setup.
+- Each hook is a short Node process. On the Windows machine this was measured on, where Node itself takes about 360 ms to start, a hook added roughly 100 ms per edit or command. Expect less on a faster setup. Through `npx` instead of a global install the same call took about 3.4 s, which is why the Claude Code installer asks for `npm install -g modedial` first and refuses to write `npx` hooks.
 - Hooks only run if you install them. Without them the guards are not enforced, and the modes behave as plain instructions.
 - Other agents have their own installers (see the table below). Enforcement is real on Claude Code, opencode and Roo Code modes. Elsewhere the guards are written into the mode as plain rules.
 
