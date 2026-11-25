@@ -1,6 +1,6 @@
 import { closeSync, openSync, readSync, statSync } from "node:fs";
 import { evaluatePreToolUse, evaluateStop, emptyState, updateAfterTool, type SessionState } from "./guards.js";
-import { findMode } from "./modesLight.js";
+import { findMode, requestedModeId } from "./modesLight.js";
 import type { Mode } from "./modes.js";
 import { pruneOldSessions, readState, writeState } from "./session.js";
 
@@ -76,8 +76,7 @@ export function runHook(event: HookEvent, input: HookInput, opts: { base: string
 
   if (event === "post-tool-use") {
     if (SET_MODE.test(tool)) {
-      const id = typeof input.tool_input?.id === "string" ? input.tool_input.id : "";
-      const next = findMode(opts.modes, id);
+      const next = findMode(opts.modes, requestedModeId(input.tool_input));
       if (!next) return null;
       const scope = asScope(input.tool_input?.scope);
       writeState(opts.base, sid, { ...emptyState(), mode: next.id, scope });
@@ -94,7 +93,8 @@ export function runHook(event: HookEvent, input: HookInput, opts: { base: string
   }
 
   if (event === "pre-tool-use") {
-    const d = evaluatePreToolUse(mode, state, tool, input.tool_input, input.cwd ?? process.cwd());
+    const target = SET_MODE.test(tool) ? findMode(opts.modes, requestedModeId(input.tool_input)) : undefined;
+    const d = evaluatePreToolUse(mode, state, tool, input.tool_input, input.cwd ?? process.cwd(), target);
     if (d.decision === "allow") return null;
     return { hookSpecificOutput: { hookEventName: "PreToolUse", permissionDecision: d.decision, permissionDecisionReason: d.reason } };
   }

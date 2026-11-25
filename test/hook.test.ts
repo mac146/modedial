@@ -137,3 +137,57 @@ describe("lastAssistantText", () => {
     expect(lastAssistantText({})).toBeNull();
   });
 });
+
+describe("an agent cannot loosen a guard by itself", () => {
+  const T = (n: string) => `mcp__modedial__${n}`;
+  const pre = (tool: string, tool_input: object = {}) => run("pre-tool-use", { tool_name: T(tool), tool_input })?.hookSpecificOutput.permissionDecision ?? "allow";
+
+  it("Careful Reviewer: ending or switching away needs approval, under either parameter name", () => {
+    setMode("careful-reviewer");
+    expect(pre("end_mode")).toBe("ask");
+    for (const input of [{ id: "fast-prototype" }, { mode: "fast-prototype" }, { id: " Fast-Prototype " }, { id: "debug" }, { id: "deep-focus" }, { id: "chill-refactor" }])
+      expect(pre("set_mode", input), JSON.stringify(input)).toBe("ask");
+    expect(pre("set_mode", { id: "careful-reviewer" })).toBe("allow");
+    expect(pre("current_mode")).toBe("allow");
+    expect(pre("list_modes")).toBe("allow");
+  });
+
+  it("covers plugin-style tool names and ignores other servers", () => {
+    setMode("careful-reviewer");
+    expect(run("pre-tool-use", { tool_name: "mcp__plugin_modedial_modedial__end_mode", tool_input: {} })).not.toBeNull();
+    expect(run("pre-tool-use", { tool_name: "mcp__other__end_mode", tool_input: {} })).toBeNull();
+  });
+
+  it("an unknown mode id changes nothing, so it is not gated", () => {
+    setMode("careful-reviewer");
+    expect(pre("set_mode", { id: "nope" })).toBe("allow");
+  });
+
+  it("Deep Focus: the scope cannot be widened or dropped without approval, narrowing is fine", () => {
+    setMode("deep-focus", { scope: ["src/a.js", "src/b.js"] });
+    expect(pre("set_mode", { id: "deep-focus", scope: ["src/a.js"] })).toBe("allow");
+    expect(pre("set_mode", { id: "deep-focus", scope: ["src"] })).toBe("ask");
+    expect(pre("set_mode", { id: "deep-focus" })).toBe("ask");
+    expect(pre("set_mode", { id: "deep-focus", scope: [] })).toBe("ask");
+    expect(pre("end_mode")).toBe("ask");
+    expect(pre("set_mode", { id: "careful-reviewer" })).toBe("allow"); // stricter
+  });
+
+  it("Chill Refactor guards manifests, so leaving it needs approval", () => {
+    setMode("chill-refactor");
+    expect(pre("end_mode")).toBe("ask");
+    expect(pre("set_mode", { id: "fast-prototype" })).toBe("ask");
+  });
+
+  it("modes with no edit guard can be left freely", () => {
+    for (const id of ["debug", "fast-prototype", "creative-sprint", "deep-focus"]) {
+      setMode(id);
+      expect(pre("end_mode"), id).toBe("allow");
+    }
+  });
+
+  it("set_mode sent with 'mode' instead of 'id' still switches the guards on", () => {
+    run("post-tool-use", { tool_name: T("set_mode"), tool_input: { mode: "careful-reviewer" } });
+    expect(readState(base, "s1").mode).toBe("careful-reviewer");
+  });
+});

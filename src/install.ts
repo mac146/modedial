@@ -62,7 +62,7 @@ const WRITE_TOOLS = "Edit|Write|MultiEdit|NotebookEdit";
 export function buildClaudeHooks(prefix: string): Record<string, HookEntry[]> {
   const cmd = (event: string) => ({ type: "command", command: `${prefix} hook ${event} ${MARKER}`, timeout: 10 });
   return {
-    PreToolUse: [{ matcher: `${WRITE_TOOLS}|Bash`, hooks: [cmd("pre-tool-use")] }],
+    PreToolUse: [{ matcher: `${WRITE_TOOLS}|Bash|mcp__.*modedial.*`, hooks: [cmd("pre-tool-use")] }],
     PostToolUse: [{ matcher: `${WRITE_TOOLS}|Bash|mcp__.*modedial.*`, hooks: [cmd("post-tool-use")] }],
     Stop: [{ hooks: [cmd("stop")] }],
     SessionStart: [{ matcher: "compact", hooks: [cmd("session-start")] }],

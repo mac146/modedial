@@ -79,3 +79,12 @@ describe("tools", () => {
     expect((await call("recap")).text).toMatch(/1 mode switches/);
   });
 });
+
+describe("set_mode parameter names", () => {
+  it("accepts 'mode' as an alias for 'id', and explains itself when neither is given", async () => {
+    expect((await call("set_mode", { mode: "debug" })).text).toMatch(/Debug Mode/);
+    const none = await call("set_mode", {});
+    expect(none.isError).toBe(true);
+    expect(none.text).toMatch(/deep-focus/);
+  });
+});

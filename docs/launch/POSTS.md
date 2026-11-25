@@ -9,7 +9,7 @@ Facts every post may rely on (all verified in this repo):
 - No telemetry. The local log holds only a mode id, a timestamp and a random session id.
 - Cards and recaps are drawn locally and nothing is uploaded unless you post the image.
 - Tested with Claude Code, Codex CLI and opencode (one smoke test each). Cursor config is provided but untested.
-- On Claude Code and opencode some modes have **enforced guards**: the reviewer cannot edit files, Debug cannot finish an edit until something has run, Deep Focus asks before edits outside a declared scope. Unit-tested, and checked against real sessions.
+- Guards (0.1.3+). Claude Code: the reviewer's file-edit tools are denied and leaving the mode needs approval; shell filtering is best effort (`node -e` gets through). Debug sends the agent back **once**. Deep Focus asks before file-tool edits outside a declared scope. opencode: **only** the reviewer is enforced (edit and shell tools off).
 - `npx modedial install <agent>` writes native files for 12 agents. Claude Code, opencode and Codex were checked live; Cursor, Windsurf, Cline and Roo Code follow their docs; Copilot, Gemini CLI, Kilo Code and Aider are unverified. Say so if asked.
 - A published study of AGENTS.md files (ETH Zurich) found no success gain and 20%+ more cost. Our pilots saw a similar shape, but they were small and partly flawed, so call it "consistent with", never "proof".
 - No benchmark. A small observational check (1 run per mode per task, 3 tasks) showed each mode changes the reply's style.
@@ -35,7 +35,7 @@ Deep Focus: opens with "Goal:", ends with what it set aside.
 Careful Reviewer: must-fix, nice-to-have, and what it did NOT check.
 
 **2b/**
-The part I'm proudest of: some modes have guards, not just advice. On Claude Code and opencode, Careful Reviewer literally can't edit your files, and Debug can't wrap up after an edit until something has actually run. Hooks and permissions, not vibes.
+The part I'm proudest of: some modes have guards, not just advice. On Claude Code, Careful Reviewer's edit tools are blocked, and it needs your OK to leave the mode. It's not a sandbox: the shell filter is best effort.
 
 **3/**
 Every switch prints a little label card. At the end you get a recap: top modes, longest stretch, busiest time of day, and a silly personality label.
@@ -71,7 +71,7 @@ The fun part: each mode has a visible tell. Debug Mode states a hypothesis and a
 
 Every switch also prints a card, and there's a recap image built from your own log (top modes, longest stretch, busiest time of day, and a personality label that is purely for laughs). All drawn locally.
 
-The bit that makes it more than a prompt pack: on Claude Code and opencode, some modes have guards the agent can't break. Careful Reviewer is read-only (edits and mutating commands are denied), Debug can't finish an edit until something has run, and Deep Focus asks before touching files outside the scope the agent declared. `npx modedial install <agent>` writes native files for a dozen agents (Cursor rules, Roo modes, Windsurf rules, Codex AGENTS.md and more); I checked Claude Code, opencode and Codex against real sessions and say plainly which others are docs-only or unverified.
+The bit that makes it more than a prompt pack: some modes have guards that run as hooks on Claude Code. Careful Reviewer's file-edit tools are denied and it needs your approval to leave the mode (the shell filter is best effort, not a sandbox). Debug sends the agent back once if it tries to finish an edit without running anything. Deep Focus asks before editing files outside the scope the agent declared. On opencode, only the reviewer is enforced. `npx modedial install <agent>` writes native files for a dozen agents (Cursor rules, Roo modes, Windsurf rules, Codex AGENTS.md and more); I checked Claude Code, opencode and Codex against real sessions and say plainly which others are docs-only or unverified.
 
 Straight talk:
 - An MCP tool can't force an agent. It's a nudge, and a CLAUDE.md snippet makes it stick better.
@@ -89,30 +89,14 @@ Which mode should I add? Which one is dumb? If you try it in Cursor, tell me if 
 
 ## Hacker News
 
-**Title:** Show HN: Modedial – a mode dial for coding agents (MCP server)
+**No draft on purpose.** HN does not allow AI-written or AI-edited comments (https://news.ycombinator.com/item?id=47340079). Write the title, first comment and every reply yourself, from scratch. Link the repo. Things you may want to cover, as facts to check yourself against:
 
-**URL:** <SITE_URL> (or the repo)
-
-**First comment (post right after submitting):**
-
-I kept typing the same few instructions at coding agents: stay on one task, reproduce before guessing, review without editing. Modedial turns them into six named modes that an agent switches with one MCP call. It started as a joke about music apps for agents and got a bit out of hand.
-
-`set_mode("debug")` returns a short instruction bundle (under 150 tokens) that the agent follows until `end_mode`. The modes are static data bundled in the package and are never fetched at runtime, since pulling instructions from the network would be a prompt-injection hole.
-
-Each mode asks the agent for a recognizable tell (Debug states a hypothesis and says when a fix is unconfirmed; Deep Focus opens with "Goal:" and ends with what it set aside). Every switch also renders a PNG card locally, and a recap image comes from your own log.
-
-Beyond instructions: on Claude Code (hooks) and opencode (agent permissions) some modes carry enforced guards. The reviewer mode cannot write files, the debug mode cannot finish an edit round without something having run, and the focus mode asks before out-of-scope edits. That part is deterministic code with unit tests, plus a script that checks it against a real session. Other agents (Cursor, Windsurf, Codex, etc.) get the same rules as plain text, because they can't enforce them. `npx modedial install` writes the native files for each.
-
-What it is not:
-- It can't force behavior. It returns text; the agent decides.
-- It has no benchmark behind it. I ran a small observational check (one run per mode on three tasks) and saw the style change. That is not evidence of better results. A real test would need fixed tasks, objective checks, repeated runs and several models.
-- Tested with Claude Code, Codex CLI and opencode (one smoke test each). The Cursor config is in the README, untested.
-
-No telemetry, no network calls, a log that stores a mode id and a timestamp. MIT: <REPO_URL>
-
-If this gets no use, I'll say so and move on. Feedback on the modes, or on whether this should exist, is welcome.
-
-(Built with help from Claude Code.)
+- Why you built it, in your own words.
+- What `set_mode` does, and that modes are bundled, never fetched.
+- Guards: exactly the limits in the "Facts" list above.
+- No benchmark of whether modes improve results.
+- Which agents you tested, and which you did not.
+- That Claude Code helped build it.
 
 ---
 

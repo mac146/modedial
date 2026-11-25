@@ -89,14 +89,46 @@ export function inScope(filePath: string, scope: string[], cwd: string): boolean
   });
 }
 
+const MODE_CHANGE = /^mcp__.*modedial.*__(set_mode|end_mode)$/;
+
+const scopeList = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && x.length > 0) : []);
+
+/**
+ * A guard the agent can switch off by itself is not a guard. While a mode that blocks or gates edits
+ * is active, ending it, switching to a looser mode or widening its scope needs the user's approval.
+ */
+function evaluateModeChange(
+  mode: Mode,
+  state: SessionState,
+  action: string,
+  input: Record<string, unknown> | undefined,
+  target: Mode | undefined,
+): Decision {
+  const scopeLocked = mode.guards.includes("scope-lock") && state.scope.length > 0;
+  if (!mode.guards.includes("read-only") && !mode.guards.includes("protect-manifests") && !scopeLocked) return { decision: "allow" };
+  const ask = (what: string): Decision => ({ decision: "ask", reason: `${mode.name} is guarding this session. ${what} would loosen its guard, so it needs your approval.` });
+  if (action === "end_mode") return ask("Ending the mode");
+  if (!target) return { decision: "allow" }; // unknown id: the call fails and changes nothing
+  if (target.id === mode.id) {
+    if (!scopeLocked) return { decision: "allow" };
+    const next = scopeList(input?.scope);
+    return next.length > 0 && next.every((e) => state.scope.includes(e)) ? { decision: "allow" } : ask("Widening the declared scope");
+  }
+  if (target.guards.includes("read-only")) return { decision: "allow" }; // nothing can be edited there, so it is stricter
+  return ask(`Switching to ${target.name}`);
+}
+
 export function evaluatePreToolUse(
   mode: Mode | undefined,
   state: SessionState,
   tool: string,
   input: Record<string, unknown> | undefined,
   cwd: string,
+  target?: Mode,
 ): Decision {
   if (!mode) return { decision: "allow" };
+  const change = MODE_CHANGE.exec(tool);
+  if (change) return evaluateModeChange(mode, state, change[1]!, input, target);
   const write = isWriteTool(tool);
   const path = toolPath(input);
 

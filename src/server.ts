@@ -5,6 +5,8 @@ import { EventLog } from "./log.js";
 import { writeLatestCard } from "./cards.js";
 import { findMode, formatModeBundle, loadModes, type Mode } from "./modes.js";
 import { dataDir } from "./paths.js";
+import { requestedModeId } from "./modesLight.js";
+import { packageVersion } from "./version.js";
 import { computeRecap, formatRecap } from "./stats.js";
 
 const text = (t: string, isError = false) => ({
@@ -21,7 +23,7 @@ export function createServer(
   const session = randomBytes(4).toString("hex");
   let current: Mode | null = null;
 
-  const server = new McpServer({ name: "modedial", version: opts.version ?? "0.1.0" });
+  const server = new McpServer({ name: "modedial", version: opts.version ?? packageVersion() });
 
   server.registerTool(
     "list_modes",
@@ -35,7 +37,8 @@ export function createServer(
       description:
         "Activate a mode. Returns short instructions you should follow until end_mode is called or the user picks another mode.",
       inputSchema: {
-        id: z.string().describe("Mode id from list_modes, e.g. deep-focus"),
+        id: z.string().optional().describe("Mode id from list_modes, e.g. deep-focus. Required."),
+        mode: z.string().optional().describe("Alias for id."),
         scope: z
           .array(z.string())
           .max(50)
@@ -43,7 +46,8 @@ export function createServer(
           .describe("Optional. Files, folders or globs you expect to change. Used by Deep Focus: editing outside them needs the user's approval."),
       },
     },
-    async ({ id }) => {
+    async (args) => {
+      const id = requestedModeId(args);
       const m = findMode(modes, id);
       if (!m) return text(`Unknown mode "${id}". Valid ids: ${modes.map((x) => x.id).join(", ")}`, true);
       current = m;

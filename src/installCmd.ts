@@ -48,7 +48,7 @@ export function runInstall(cmd: "install" | "uninstall", args: string[], env: In
         continue;
       }
       out.push(`  ${dryRun ? "would update" : cmd === "install" ? "updated" : "cleaned"} ${r.path}`);
-      out.push("  enforcement: real, via hooks (read-only reviewer, verify-before-finish, scope lock, manifest guard, required tells)");
+      out.push("  enforcement: hooks (reviewer edit block, scope and manifest approval, one-time verify and tell reminders). Shell filtering is best effort.");
       if (cmd === "install") out.push("  MCP server: claude mcp add modedial -- npx -y modedial");
       continue;
     }

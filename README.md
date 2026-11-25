@@ -77,7 +77,7 @@ instead of switching silently.
 
 ## Enforcement (Claude Code)
 
-By default a mode is advice: the agent reads the instructions and chooses to follow them. On Claude Code you can add **guards**, which are enforced by hooks the agent cannot talk its way past:
+By default a mode is advice: the agent reads the instructions and chooses to follow them. On Claude Code you can add **guards**, which run as hooks, outside the model:
 
 ```bash
 npm install -g modedial                    # hooks run on every edit, so install globally (fast start)
@@ -88,19 +88,21 @@ modedial uninstall claude-code              # remove them again
 
 | Mode | What is enforced |
 |---|---|
-| Careful Reviewer | Read-only: file edits are denied, and shell commands that change files, git state or packages are denied. Its reply must end with "Not checked". |
-| Debug Mode | After editing, the agent cannot finish until something has run (a test, a script, a build). It is sent back once to run it or to say the fix is unconfirmed. |
-| Deep Focus | If the agent declares `scope` when it sets the mode, editing outside that scope needs your approval. Its reply must start with "Goal:" and end with "Set aside:". |
-| Chill Refactor | Edits to dependency manifests (package.json, lockfiles, requirements, go.mod…) need your approval. It must verify after editing, and end with "Changed / left alone:". |
+| Careful Reviewer | Claude Code's file-edit tools are denied. Common shell commands that change files, git state or packages are denied too (best effort). Leaving the mode needs your approval. It is reminded once if its reply lacks "Not checked". |
+| Debug Mode | If it tries to finish after an edit with nothing run, it is sent back once to run something or to say the fix is unconfirmed. After that it can finish. |
+| Deep Focus | If the agent declares `scope`, file-tool edits outside it need your approval, and so does widening the scope or leaving the mode. It is reminded once if its reply lacks "Goal:" or "Set aside:". |
+| Chill Refactor | File-tool edits to dependency manifests (package.json, lockfiles, requirements, go.mod…) need your approval, and so does leaving the mode. Shell commands such as `npm install` are not caught. It gets one reminder each to run something after editing and to end with "Changed / left alone:". |
 | Creative Sprint, Fast Prototype | Instructions only. Nothing to enforce. |
 
 The hooks are deterministic code with unit tests, and an end-to-end script (`node scripts/e2e-claude-code.mjs`) checks them against a real Claude Code session. Honest limits:
-- The shell filter is best effort. It blocks the common ways to change things, but a determined command can slip through. The file-edit tools are the hard guarantee.
+- The shell filter is best effort. For example, `node -e` can still write a file. Denying the file-edit tools is the part you can rely on; it is not a sandbox.
+- Other MCP servers' tools are not gated.
+- **Upgrading from 0.1.2 or earlier:** run `modedial install claude-code` again. Before 0.1.3 the agent could switch a guard off by calling `end_mode` or `set_mode` itself.
 - "Needs your approval" prompts you in an interactive session. In headless runs it simply does not apply the edit.
 - The "verify" and "tell" nudges happen once per round, so a stubborn agent can still finish. They improve the odds, they are not a lock.
 - Each hook is a short Node process. On the Windows machine this was measured on, where Node itself takes about 360 ms to start, a hook added roughly 100 ms per edit or command. Expect less on a faster setup. Through `npx` instead of a global install the same call took about 3.4 s, which is why the Claude Code installer asks for `npm install -g modedial` first and refuses to write `npx` hooks.
 - Hooks only run if you install them. Without them the guards are not enforced, and the modes behave as plain instructions.
-- Other agents have their own installers (see the table below). Enforcement is real on Claude Code, opencode and Roo Code modes. Elsewhere the guards are written into the mode as plain rules.
+- Other agents have their own installers (see the table below). Claude Code has the hooks above, and opencode's reviewer agent has its edit tools switched off. Roo Code modes declare tool limits, which we have not run. Elsewhere the guards are written into the mode as plain rules.
 
 ## Setup for every agent
 
