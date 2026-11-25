@@ -30,7 +30,9 @@ describe("landing page", () => {
     const html = read("site/index.html");
     expect(html).toMatch(/Tested with Claude Code, Codex CLI and opencode/);
     // The "What we don't claim" list legitimately names these claims in order to deny them, so ignore that block.
-    const withoutDenials = html.replace(/What we don’t claim[\s\S]*?<\/ul>/, "");
+    const withoutDenials = html
+      .replace(/What we don’t claim[\s\S]*?<\/ul>/, "")
+      .replace("We did not benchmark whether modes improve results, and make no such claim.", "");
     expect(withoutDenials).not.toMatch(/improves? (your )?(results|code quality)|faster than|smarter|better results|outperform/i);
   });
 });
