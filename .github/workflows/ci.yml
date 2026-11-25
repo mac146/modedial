@@ -25,3 +25,20 @@ jobs:
       - run: npm test
       # Pack the package, install the tarball in an empty folder and use it, like a real user would.
       - run: node scripts/smoke-pack.mjs
+
+  # Publish rehearsal: a private npm registry, then npx / global install / the installer / hooks, like a real user.
+  registry-e2e:
+    name: private-registry rehearsal / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node scripts/registry-e2e.mjs

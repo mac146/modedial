@@ -1,4 +1,3 @@
-import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
@@ -29,9 +28,30 @@ export function resolveHookPrefix(cliPath: string, hasGlobalBin: () => boolean):
   );
 }
 
-function globalBinExists(): boolean {
-  return spawnSync(process.platform === "win32" ? "where" : "which", ["modedial"], { encoding: "utf8" }).status === 0;
+/**
+ * Finds a real, installed `bin` on the PATH. Directories inside npx's cache are skipped on purpose:
+ * while running through npx, npx puts its own temporary .bin folder on the PATH, so a plain
+ * `which`/`where` finds a copy that vanishes as soon as npx exits. Hooks written against that copy
+ * would fail to start later and silently turn every guard off.
+ */
+export function findGlobalBin(
+  bin: string,
+  pathVar: string = process.env.PATH ?? process.env.Path ?? "",
+  platform: string = process.platform,
+  exists: (p: string) => boolean = existsSync,
+): string | null {
+  const names = platform === "win32" ? [`${bin}.cmd`, `${bin}.exe`, `${bin}.bat`, bin] : [bin];
+  for (const dir of pathVar.split(platform === "win32" ? ";" : ":")) {
+    if (!dir || isNpxCache(dir + "/")) continue;
+    for (const n of names) {
+      const p = join(dir, n);
+      if (exists(p)) return p;
+    }
+  }
+  return null;
 }
+
+const globalBinExists = (): boolean => findGlobalBin("modedial") !== null;
 
 export function hookCommandPrefix(): string {
   return resolveHookPrefix(join(dirname(fileURLToPath(import.meta.url)), "cli.js"), globalBinExists);

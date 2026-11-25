@@ -1,5 +1,33 @@
 import { describe, expect, it } from "vitest";
-import { resolveHookPrefix } from "../src/install.js";
+import { findGlobalBin, resolveHookPrefix } from "../src/install.js";
+
+describe("findGlobalBin (must not mistake npx's temporary copy for a real install)", () => {
+  const win = "C:\\Users\\me\\AppData\\Local\\npm-cache\\_npx\\abc\\node_modules\\.bin;C:\\Users\\me\\AppData\\Roaming\\npm;C:\\Windows";
+  const nix = "/home/me/.npm/_npx/abc/node_modules/.bin:/usr/local/bin:/usr/bin";
+  const has = (...files: string[]) => (p: string) => files.some((f) => p.replace(/\\/g, "/").endsWith(f));
+
+  it("ignores the npx cache folder even when it comes first on the PATH", () => {
+    // the temporary copy exists, and so does a real one further along: only the real one counts
+    expect(findGlobalBin("modedial", win, "win32", has("_npx/abc/node_modules/.bin/modedial.cmd", "Roaming/npm/modedial.cmd"))).toMatch(/Roaming/);
+    const found = findGlobalBin("modedial", nix, "linux", has("_npx/abc/node_modules/.bin/modedial", "/usr/local/bin/modedial"));
+    expect(found?.replace(/\\/g, "/")).toBe("/usr/local/bin/modedial");
+  });
+
+  it("returns null when the only copy is npx's temporary one", () => {
+    expect(findGlobalBin("modedial", win, "win32", has("_npx/abc/node_modules/.bin/modedial.cmd"))).toBeNull();
+    expect(findGlobalBin("modedial", nix, "linux", has("_npx/abc/node_modules/.bin/modedial"))).toBeNull();
+  });
+
+  it("returns null for an empty PATH", () => {
+    expect(findGlobalBin("modedial", "", "linux", () => true)).toBeNull();
+  });
+
+  it("an installer running through npx with only the temporary copy refuses", () => {
+    const cli = "C:\\Users\\me\\AppData\\Local\\npm-cache\\_npx\\abc\\node_modules\\modedial\\dist\\cli.js";
+    const found = () => findGlobalBin("modedial", win, "win32", has("_npx/abc/node_modules/.bin/modedial.cmd")) !== null;
+    expect(() => resolveHookPrefix(cli, found)).toThrow(/npm install -g modedial/);
+  });
+});
 
 describe("resolveHookPrefix (hooks run on every edit, so they must start fast)", () => {
   const npxCli = "C:\\Users\\me\\AppData\\Local\\npm-cache\\_npx\\abc123\\node_modules\\modedial\\dist\\cli.js";

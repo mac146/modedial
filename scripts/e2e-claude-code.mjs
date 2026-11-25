@@ -9,7 +9,10 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "..", "dist", "cli.js");
-const model = process.argv[2] ?? "haiku";
+// --global: test the real user flow. Hooks and the MCP server both run through the globally installed
+// `modedial` command (npm install -g modedial), not through this checkout.
+const useGlobal = process.argv.includes("--global");
+const model = process.argv.slice(2).find((a) => !a.startsWith("--")) ?? "haiku";
 const real = (p) => realpathSync.native(p);
 
 function scenario(name, prompt, check) {
@@ -18,9 +21,21 @@ function scenario(name, prompt, check) {
   writeFileSync(join(project, "a.txt"), "original\n");
   writeFileSync(join(project, "b.txt"), "untouched\n");
   const env = { ...process.env, MODEDIAL_HOME: home, MODEDIAL_NO_CARD: "1" };
-  const inst = spawnSync("node", [CLI, "install", "claude-code"], { cwd: project, env, encoding: "utf8" });
+  const inst = useGlobal
+    ? spawnSync("modedial", ["install", "claude-code"], { cwd: project, env, encoding: "utf8", shell: true })
+    : spawnSync("node", [CLI, "install", "claude-code"], { cwd: project, env, encoding: "utf8" });
+  if (useGlobal) {
+    const hookCmd = JSON.parse(readFileSync(join(project, ".claude", "settings.json"), "utf8")).hooks.PreToolUse[0].hooks[0].command;
+    console.log(`   (installed hook command: ${hookCmd.split(" --modedial")[0]})`);
+    // Either `modedial hook ...` or `node "<stable global install path>" hook ...` is correct. A path into npx's
+    // temporary cache is not: it disappears, the hook then fails to start, and the guards silently switch off.
+    if (/_npx|npx-cache/.test(hookCmd)) throw new Error("hooks point into npx's temporary cache: " + hookCmd);
+  }
   const cfg = join(home, "mcp.json");
-  writeFileSync(cfg, JSON.stringify({ mcpServers: { modedial: { command: "node", args: [CLI.replace(/\\/g, "/")], env: { MODEDIAL_HOME: home.replace(/\\/g, "/"), MODEDIAL_NO_CARD: "1" } } } }));
+  const launch = !useGlobal
+    ? { command: "node", args: [CLI.replace(/\\/g, "/")] }
+    : process.platform === "win32" ? { command: "cmd", args: ["/c", "modedial"] } : { command: "modedial", args: [] };
+  writeFileSync(cfg, JSON.stringify({ mcpServers: { modedial: { ...launch, env: { MODEDIAL_HOME: home.replace(/\\/g, "/"), MODEDIAL_NO_CARD: "1" } } } }));
   const r = spawnSync(
     "claude",
     ["-p", "--output-format", "json", "--permission-mode", "acceptEdits", "--max-turns", "12", "--mcp-config", `"${cfg}"`, "--strict-mcp-config",

@@ -16,7 +16,30 @@ describe("landing page", () => {
     const refs = [...html.matchAll(/(?:src|href)="(?!https?:|#|mailto:)([^"]+)"/g)].map((m) => m[1]!)
       .concat([...html.matchAll(/url\(([^)]+\.ttf)\)/g)].map((m) => m[1]!));
     expect(refs.length).toBeGreaterThan(0);
-    for (const r of refs) expect(existsSync(resolve(root, "site", r)), r).toBe(true);
+    for (const r of refs) expect(existsSync(resolve(root, "site", r.replace(/^\//, ""))), r).toBe(true);
+  });
+
+  it("has favicons: SVG plus real PNG files of the right sizes, all linked from the page", () => {
+    const html = read("site/index.html");
+    expect(html).toMatch(/<link rel="icon" href="\/favicon\.svg" type="image\/svg\+xml">/);
+    expect(html).toMatch(/<link rel="apple-touch-icon" href="\/apple-touch-icon\.png">/);
+    const png = (f: string) => {
+      const b = readFileSync(resolve(root, "site", f));
+      expect(b.subarray(1, 4).toString(), f).toBe("PNG");
+      return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+    };
+    expect(png("favicon-32.png")).toEqual({ w: 32, h: 32 });
+    expect(png("apple-touch-icon.png")).toEqual({ w: 180, h: 180 });
+    expect(png("og.png")).toEqual({ w: 1200, h: 630 });
+    expect(read("site/favicon.svg")).toMatch(/<svg[^>]+viewBox="0 0 64 64"/);
+  });
+
+  it("link-preview tags use absolute URLs on the real domain (previews fail on relative ones)", () => {
+    const html = read("site/index.html");
+    const urls = [...html.matchAll(/<meta (?:property="og:(?:image|url)"|name="twitter:image") content="([^"]+)"/g)].map((m) => m[1]!);
+    expect(urls.length).toBe(3);
+    for (const u of urls) expect(u).toMatch(/^https:\/\/modedial-site\.vercel\.app\//);
+    expect(html, "no leftover TODO comments in the page").not.toMatch(/<!--[\s\S]*?TODO[\s\S]*?-->/);
   });
 
   it("makes no external requests: no CDN scripts, no remote fonts, no analytics", () => {

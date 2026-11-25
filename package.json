@@ -1,6 +1,6 @@
 {
   "name": "modedial",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Named modes for coding agents, as an MCP server. Switch focus, debug, review and more with one call.",
   "type": "module",
   "bin": {
@@ -19,7 +19,10 @@
     "dev": "tsc --watch",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
-    "prepublishOnly": "npm run build && npm test"
+    "prepublishOnly": "npm run build && npm run test:all",
+    "test:smoke": "node scripts/smoke-pack.mjs",
+    "test:registry": "node scripts/registry-e2e.mjs",
+    "test:all": "npm test && npm run test:smoke && npm run test:registry"
   },
   "engines": {
     "node": ">=20"
