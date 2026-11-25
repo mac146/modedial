@@ -1,4 +1,4 @@
-import { basename, isAbsolute, relative, resolve } from "node:path";
+import { isAbsolute, relative, resolve } from "node:path";
 import type { Mode } from "./modes.js";
 
 /**
@@ -68,7 +68,9 @@ const MANIFESTS = new Set([
   "package.json", "package-lock.json", "pnpm-lock.yaml", "yarn.lock", "bun.lockb", "requirements.txt",
   "pyproject.toml", "poetry.lock", "Pipfile", "Pipfile.lock", "Cargo.toml", "Cargo.lock", "go.mod", "go.sum", "Gemfile", "Gemfile.lock",
 ]);
-export const isManifest = (path: string): boolean => MANIFESTS.has(basename(path));
+/** File name from a path using either separator. node:path's basename only knows the current OS's separator. */
+export const fileName = (path: string): string => path.split(/[\\/]/).pop() ?? path;
+export const isManifest = (path: string): boolean => MANIFESTS.has(fileName(path));
 
 function globToRegExp(glob: string): RegExp {
   const esc = glob.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*\*/g, "\u0000").replace(/\*/g, "[^/]*").replace(/\u0000/g, ".*");
@@ -104,7 +106,7 @@ export function evaluatePreToolUse(
       return { decision: "deny", reason: `${mode.name} is read-only. This command looks like it changes files, git state or packages.` };
   }
   if (write && path && mode.guards.includes("protect-manifests") && isManifest(path))
-    return { decision: "ask", reason: `${mode.name}: ${basename(path)} is a dependency manifest. Refactors should not change dependencies.` };
+    return { decision: "ask", reason: `${mode.name}: ${fileName(path)} is a dependency manifest. Refactors should not change dependencies.` };
   if (write && path && mode.guards.includes("scope-lock") && state.scope.length > 0 && !inScope(path, state.scope, cwd))
     return { decision: "ask", reason: `${mode.name}: ${path} is outside the declared scope (${state.scope.join(", ")}). Approve to widen it.` };
   return { decision: "allow" };
