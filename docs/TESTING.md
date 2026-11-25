@@ -8,6 +8,7 @@ Run everything before any release with `npm run test:all`. A real `npm publish` 
 | Cross-OS CI | GitHub Actions | The same tests on Linux, macOS, Windows × Node 20 and 22 | `basename` ignoring backslash paths on Linux/macOS |
 | Clean-install smoke | `npm run test:smoke` | Pack the tarball, install it in an empty folder, run MCP, card rendering and a hook | `smoke script quoted a path wrongly on Linux` |
 | **Private-registry rehearsal** | `npm run test:registry` | Starts a private npm registry (Verdaccio), publishes to it, then does what users do: `npx`, `npm install -g`, the installer, and **runs the exact hook command string it wrote** in a clean shell | `npx hook cost 3.4 s per call`, and `installer wrote a hook command that only worked while npx was running` (0.1.1) |
+| **Post-publish check** | `npm run verify:published` | The same 26 checks against the REAL npm registry, after a publish. Waits until the tarball is actually downloadable | (the first run after a publish can hit npm's propagation window; the check now waits for the tarball) |
 | Real-agent end-to-end | `node scripts/e2e-claude-code.mjs haiku [--global]` | A real Claude Code session: the reviewer cannot write a file, Debug mode is sent back after an unverified edit, out-of-scope edits are held. `--global` runs through the global install | confirmed the hook payload shapes match real Claude Code |
 | Live-agent checks | see `docs/agent-tests/README.md` | opencode and Codex read the files we write | — |
 

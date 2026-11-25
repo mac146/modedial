@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const win = process.platform === "win32";
+const publicMode = process.env.MODEDIAL_E2E_PUBLIC === "1" || process.argv.includes("--public"); // verify the PUBLISHED package on the real registry instead
 const VERDACCIO = "verdaccio@6.2.4"; // 7.x requires Node 24; 6.x supports Node 18+
 const work = realpathSync.native(mkdtempSync(join(tmpdir(), "modedial-reg-")));
 const results = [];
@@ -34,10 +35,13 @@ const cleanBase = win ? ["C:\\Windows\\System32", "C:\\Windows", dirname(process
 
 try {
   // ---- registry
-  console.log("building, then starting a private registry (first run downloads Verdaccio)...");
-  const build = sh("npm", ["run", "build"], { cwd: root });
+  console.log(publicMode ? "PUBLIC MODE: checking the published package on the real npm registry (nothing is published)..." : "building, then starting a private registry (first run downloads Verdaccio)...");
+  const build = publicMode ? { status: 0 } : sh("npm", ["run", "build"], { cwd: root });
   if (build.status !== 0) throw new Error("build failed: " + build.stderr);
-  const port = await freePort();
+  let base, port;
+  const rc = join(work, "npmrc");
+  if (!publicMode) {
+  port = await freePort();
   const cfg = join(work, "verdaccio.yaml");
   writeFileSync(cfg, [
     `storage: ${join(work, "storage").replace(/\\/g, "/")}`,
@@ -57,18 +61,27 @@ try {
   const vdLog = join(work, "verdaccio.log");
   logFd = openSync(vdLog, "w");
   server = spawn(process.execPath, [join(vdDir, "node_modules", "verdaccio", "bin", "verdaccio"), "--config", cfg, "--listen", `127.0.0.1:${port}`], { stdio: ["ignore", logFd, logFd], cwd: work });
-  const base = `http://127.0.0.1:${port}`;
+  base = `http://127.0.0.1:${port}`;
   for (let i = 0; i < 120; i++) { try { if ((await fetch(`${base}/-/ping`)).ok) break; } catch {} await new Promise((r) => setTimeout(r, 1000)); if (i === 119) throw new Error("registry did not start. Its log:\n" + readFileSync(vdLog, "utf8").slice(0, 1500)); }
   const user = await (await fetch(`${base}/-/user/org.couchdb.user:e2e`, { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ name: "e2e", password: "e2e-pass-123456", email: "e2e@example.com", type: "user" }) })).json();
-  const rc = join(work, "npmrc");
   writeFileSync(rc, `registry=${base}/\n//127.0.0.1:${port}/:_authToken=${user.token}\n`);
+  } else {
+    writeFileSync(rc, "registry=https://registry.npmjs.org/" + String.fromCharCode(10));
+  }
   // NPM_CONFIG_PREFIX points npm's global lookups at an empty folder, so a real global install of the same
   // version on this machine can never be picked up by npx in place of the package under test.
   const npmEnv = { ...process.env, NPM_CONFIG_PREFIX: join(work, "no-global"), NPM_CONFIG_USERCONFIG: rc, NPM_CONFIG_CACHE: join(work, "cache"), MODEDIAL_HOME: join(work, "home"), MODEDIAL_NO_CARD: "1" };
 
-  const pub = sh("npm", ["publish", "--ignore-scripts"], { cwd: root, env: npmEnv });
-  ok("publish to the private registry", pub.status === 0, pub.stderr);
-  const version = JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
+  const version = process.env.MODEDIAL_E2E_VERSION ?? JSON.parse(readFileSync(join(root, "package.json"), "utf8")).version;
+  if (publicMode) {
+    // a fresh publish can take a few minutes to appear
+    let seen = false;
+    for (let i = 0; i < 20 && !seen; i++) { seen = sh("npm", ["pack", `modedial@${version}`, "--pack-destination", work, "--prefer-online"], { env: npmEnv }).status === 0; if (!seen) await new Promise((r) => setTimeout(r, 15000)); }
+    ok(`modedial@${version} is available on the public registry`, seen);
+  } else {
+    const pub = sh("npm", ["publish", "--ignore-scripts"], { cwd: root, env: npmEnv });
+    ok("publish to the private registry", pub.status === 0, pub.stderr);
+  }
   const proj = (name) => { const d = join(work, name); mkdirSync(d, { recursive: true }); return d; };
   const run = (cmd, args, o = {}) => sh(cmd, args, { env: npmEnv, ...o });
 

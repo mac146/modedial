@@ -120,3 +120,8 @@ Checked npm (`npm view`), GitHub (repo search + user/org lookup), and domains (R
 - **Harness lessons:** Verdaccio 7 needs Node 24 (using 6.2.4); Windows cmd needs spaced args quoted; npx reuses a same-version global install, so the test pins `NPM_CONFIG_PREFIX` to an empty folder; and my own earlier `npm i -g` of the release tarball contaminated one run (removed). One cleanup command I wrote would have killed all Node processes, was correctly blocked, and was replaced by killing only the process the test starts.
 - **Site:** favicon (SVG + 32px + apple-touch + 512 PNG, built by `scripts/build-icons.mjs`) and absolute og:image/og:url/twitter:image tags for https://modedial-site.vercel.app/. Tests cover files, sizes, links and absolute preview URLs.
 - **Version 0.1.2** is built and fully rehearsed but not yet published (needs the founder's 2FA). After it is live, deprecate 0.1.0 and 0.1.1.
+
+## 2026-11-25 · 0.1.2 published and verified
+- **modedial@0.1.2 is live** (published by the founder). Verified on the real registry with `npm run verify:published` (the 26-check rehearsal in public mode): 26/26 on the repeat runs. The first run, minutes after publishing, failed 14 checks while npm was still propagating the version; a plain `npx -y modedial@0.1.2 list` worked at the same moment. The check now waits until the tarball is downloadable.
+- **Still on the registry with the bug:** 0.1.0 (npx hooks ~3.4 s per call) and 0.1.1 (installer could write a hook command that cannot start). To be deprecated with a pointer to 0.1.2 (needs the founder's 2FA).
+- Site now says how to switch on the Claude Code guards (global install, then `modedial install claude-code`).

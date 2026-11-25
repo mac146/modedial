@@ -22,7 +22,8 @@
     "prepublishOnly": "npm run build && npm run test:all",
     "test:smoke": "node scripts/smoke-pack.mjs",
     "test:registry": "node scripts/registry-e2e.mjs",
-    "test:all": "npm test && npm run test:smoke && npm run test:registry"
+    "test:all": "npm test && npm run test:smoke && npm run test:registry",
+    "verify:published": "node scripts/registry-e2e.mjs --public"
   },
   "engines": {
     "node": ">=20"
